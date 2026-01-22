@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  hotkey_manager: ^0.2.3
+  macos_ui: ^2.2.2
+  provider: ^6.1.5+1
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:
