@@ -13,8 +13,8 @@ void main() async {
     size: Size(800, 600), // Size of your search bar + results area
     center: true,
     backgroundColor: Colors.transparent, // Crucial for "Glass" effect
-    skipTaskbar: false, // Set to true if you don't want it in the Dock
-    titleBarStyle: TitleBarStyle.hidden, // Removes the mac title bar
+    skipTaskbar: true, // Set to true if you don't want it in the Dock
+    // titleBarStyle: TitleBarStyle.hidden, // Removes the mac title bar
     alwaysOnTop: true, // Keeps it above other windows
   );
 

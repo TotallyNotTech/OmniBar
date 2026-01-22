@@ -8,8 +8,24 @@ class MainFlutterWindow: NSWindow {
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
+    self.isOpaque = false
+    self.backgroundColor = .clear
+
+    self.hasShadow = false
+
+    self.styleMask = [.borderless, .fullSizeContentView]
+    flutterViewController.backgroundColor = .clear
+
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     super.awakeFromNib()
+  }
+
+  override var canBecomeKey: Bool {
+    return true
+  }
+  
+  override var canBecomeMain: Bool {
+    return true
   }
 }
