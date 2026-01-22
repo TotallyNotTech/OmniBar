@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
-import 'package:omni_bar/omni_bar.dart';
+import 'package:omni_bar/omni_bar_home.dart';
 import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
 
