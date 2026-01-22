@@ -43,6 +43,8 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
     windowManager.addListener(this);
     _initHotKeys();
     _textController.addListener(_onTextChanged);
+
+    windowManager.setIgnoreMouseEvents(true);
   }
 
   void _initHotKeys() async {
@@ -153,37 +155,47 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
       backgroundColor: Colors.transparent,
       body: Center(
         // Use AnimatedContainer for smooth growing/shrinking
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          width: 700,
-          // NO FIXED HEIGHT. Let the column define it.
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 30,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Shrink to fit content
-                children: [
-                  _buildSearchBar(),
-                  // 5. Display the active tool result if it exists
-                  if (_activeToolWidget != null) ...[
-                    Divider(height: 1, color: Colors.white.withOpacity(0.1)),
-                    _activeToolWidget!,
+        child: MouseRegion(
+          // When mouse enters the visible box, CAPTURE clicks
+          onEnter: (_) {
+            windowManager.setIgnoreMouseEvents(false);
+          },
+          // When mouse leaves the visible box, IGNORE clicks (pass through)
+          onExit: (_) {
+            windowManager.setIgnoreMouseEvents(true);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            width: 700,
+            // NO FIXED HEIGHT. Let the column define it.
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 30,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Shrink to fit content
+                  children: [
+                    _buildSearchBar(),
+                    // 5. Display the active tool result if it exists
+                    if (_activeToolWidget != null) ...[
+                      Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+                      _activeToolWidget!,
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
