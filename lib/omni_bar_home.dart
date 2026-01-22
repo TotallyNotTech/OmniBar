@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:omni_bar/json_tool.dart';
 import 'package:omni_bar/omni_tools.dart';
+import 'package:omni_bar/uuid_tool.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:ui' as ui;
 
@@ -27,6 +28,7 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
 
   final List<OmniTool> _tools = [
     JsonFormatTool(),
+    UuidTool(),
     // Later: ColorTool(), UuidTool(), etc.
   ];
 
@@ -176,7 +178,7 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
             // Clamping physics feels better for small desktop inputs
             scrollPhysics: const ClampingScrollPhysics(),
             decoration: const InputDecoration(
-              hintText: "Paste JSON or type a command...",
+              hintText: "Type a command...",
               hintStyle: TextStyle(color: Colors.white24),
               border: InputBorder.none,
               prefixIcon: Icon(Icons.search, color: Colors.white54, size: 28),
