@@ -62,8 +62,7 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
   Future<void> _toggleWindow() async {
     bool isVisible = await windowManager.isVisible();
     if (isVisible) {
-      await windowManager.hide();
-      _textController.clear();
+      await _hideWindow();
     } else {
       await windowManager.show();
       await windowManager.focus(); // Force focus so you can type immediately
@@ -76,7 +75,7 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
   @override
   void onWindowBlur() {
     // Feature: Auto-hide when user clicks away
-    windowManager.hide();
+    _hideWindow();
   }
 
   @override
@@ -125,9 +124,27 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
       await Clipboard.setData(ClipboardData(text: dataToCopy));
 
       // 3. Close the OmniBar window
-      await windowManager.hide();
-      _textController.clear();
+      await _hideWindow();
     }
+  }
+
+  Future<void> _hideWindow() async {
+    // 1. Hide the window visually.
+    await windowManager.hide();
+
+    // 2. THE CRITICAL STEP: Tell all tools to reset their internal cache.
+    for (final tool in _tools) {
+      tool.resetState();
+    }
+
+    // 3. Clear text for a clean slate next time.
+    _textController.clear();
+
+    // Reset local active tool state variables
+    setState(() {
+      _activeTool = null;
+      _activeToolWidget = null;
+    });
   }
 
   @override
@@ -221,7 +238,7 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
               keyboardType: TextInputType.multiline,
               scrollPhysics: const ClampingScrollPhysics(),
               decoration: const InputDecoration(
-                hintText: "Paste JSON or type a command...",
+                hintText: "Enter a command...",
                 hintStyle: TextStyle(color: Colors.white24),
                 border: InputBorder.none,
                 prefixIcon: Icon(Icons.search, color: Colors.white54, size: 28),

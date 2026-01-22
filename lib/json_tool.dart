@@ -77,4 +77,10 @@ class JsonFormatTool implements OmniTool {
       return null;
     }
   }
+
+  @override
+  void resetState() {
+    // This tool holds no cached state between runs,
+    // so this implementation intentionally does nothing.
+  }
 }

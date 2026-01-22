@@ -71,4 +71,11 @@ class UuidTool implements OmniTool {
     }
     return null;
   }
+
+  @override
+  void resetState() {
+    // Clear the cache so the next time it runs, it generates a fresh UUID.
+    _cachedInput = null;
+    _cachedResult = null;
+  }
 }

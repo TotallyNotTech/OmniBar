@@ -12,4 +12,6 @@ abstract class OmniTool {
   /// The UI widget to display below the search bar when active.
   Widget buildDisplay(BuildContext context, String input);
   String? getCopyableData(String input) => null;
+
+  void resetState() {}
 }
