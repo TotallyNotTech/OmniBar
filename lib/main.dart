@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:omni_bar/omni_bar.dart';
+import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
@@ -25,7 +28,53 @@ void main() async {
 
   await hotKeyManager.unregisterAll();
 
+  await initSystemTray();
+
   runApp(const OmniBarApp());
+}
+
+Future<void> initSystemTray() async {
+  final SystemTray systemTray = SystemTray();
+
+  // Initialize the tray with the path to the real file
+  await systemTray.initSystemTray(
+    title: "", // No text, just the icon
+    iconPath: "assets/tray_icon.png",
+    isTemplate: true,
+  );
+
+  // Define the Menu
+  final Menu menu = Menu();
+  await menu.buildFrom([
+    // A regular item with a direct callback
+    MenuItemLabel(
+      label: 'Show OmniBar',
+      onClicked: (menuItem) async {
+        await windowManager.show();
+        await windowManager.focus();
+      },
+    ),
+    MenuSeparator(),
+    MenuItemLabel(
+      label: 'Quit',
+      onClicked: (menuItem) {
+        // This is how you fully terminate the background app
+        exit(0);
+      },
+    ),
+  ]);
+
+  // Attach the menu to the tray icon
+  await systemTray.setContextMenu(menu);
+
+  // Handle clicking the icon itself to show the menu
+  systemTray.registerSystemTrayEventHandler((eventName) {
+    debugPrint("Tray Event: $eventName");
+    if (eventName == kSystemTrayEventClick ||
+        eventName == kSystemTrayEventRightClick) {
+      systemTray.popUpContextMenu();
+    }
+  });
 }
 
 class OmniBarApp extends StatelessWidget {

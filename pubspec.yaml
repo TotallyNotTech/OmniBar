@@ -11,7 +11,9 @@ dependencies:
     sdk: flutter
   hotkey_manager: ^0.2.3
   macos_ui: ^2.2.2
+  path_provider: ^2.1.5
   provider: ^6.1.5+1
+  system_tray: ^2.0.3
   window_manager: ^0.5.1
 
 dev_dependencies:
@@ -21,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/tray_icon.png
