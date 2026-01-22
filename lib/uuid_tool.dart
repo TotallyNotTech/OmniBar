@@ -7,6 +7,9 @@ class UuidTool implements OmniTool {
   @override
   String get name => "UUID Generator";
 
+  String? _cachedInput;
+  String? _cachedResult;
+
   @override
   bool canHandle(String input) {
     // 2. The Trigger: Only activate if the user types exactly "uuid"
@@ -16,9 +19,13 @@ class UuidTool implements OmniTool {
 
   @override
   Widget buildDisplay(BuildContext context, String input) {
+    if (_cachedInput != input) {
+      _cachedResult = const Uuid().v4();
+      _cachedInput = input;
+    }
     // 3. The Action: Generate a new v4 (random) UUID
     // We use 'const Uuid()' for efficiency as the generator instance can be reused.
-    final String newUuid = const Uuid().v4();
+    final displayUuid = _cachedResult ?? "Error";
 
     // 4. The UI: Consistent container style, but different accent color
     return Container(
@@ -34,7 +41,7 @@ class UuidTool implements OmniTool {
         mainAxisSize: MainAxisSize.min,
         children: [
           SelectableText(
-            newUuid,
+            displayUuid,
             style: TextStyle(
               // Using a blue accent to differentiate from JSON green
               color: Colors.cyanAccent.shade100,
@@ -45,7 +52,7 @@ class UuidTool implements OmniTool {
           ),
           const SizedBox(height: 8),
           Text(
-            "Press Enter to copy (coming soon... for now just select)",
+            "Press Enter to copy and close",
             style: TextStyle(
               color: Colors.white.withOpacity(0.3),
               fontSize: 10,
@@ -54,5 +61,14 @@ class UuidTool implements OmniTool {
         ],
       ),
     );
+  }
+
+  @override
+  String? getCopyableData(String input) {
+    // Ensure we are returning data for the current input match
+    if (input == _cachedInput) {
+      return _cachedResult;
+    }
+    return null;
   }
 }

@@ -67,4 +67,14 @@ class JsonFormatTool implements OmniTool {
       return const SizedBox.shrink();
     }
   }
+
+  @override
+  String? getCopyableData(String input) {
+    try {
+      final decoded = jsonDecode(input);
+      return const JsonEncoder.withIndent('  ').convert(decoded);
+    } catch (e) {
+      return null;
+    }
+  }
 }
