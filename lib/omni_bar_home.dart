@@ -151,6 +151,8 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
     );
   }
 
+  // In lib/omni_bar_home.dart
+
   Widget _buildSearchBar() {
     // Wrap in a Scrollbar so the user sees they can scroll
     return Scrollbar(
@@ -169,6 +171,7 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
             style: const TextStyle(color: Colors.white, fontSize: 24),
             // maxLines: null + constraints = scrollable multiline area
             maxLines: null,
+            textAlignVertical: TextAlignVertical.center,
             keyboardType: TextInputType.multiline,
             // Clamping physics feels better for small desktop inputs
             scrollPhysics: const ClampingScrollPhysics(),
