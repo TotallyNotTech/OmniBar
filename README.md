@@ -1,136 +1,115 @@
-OmniBar 🚀
-OmniBar is a lightweight, Spotlight-style developer utility blade for macOS built with Flutter. It runs in the background and provides quick access to essential tools (JSON formatting, color conversion, epoch timestamps) via a global hotkey.
+# OmniBar 🚀
 
-🛠 Tech Stack
-Framework: Flutter (macOS Desktop)
+**OmniBar** is a lightweight, Spotlight-style developer utility blade for macOS built with Flutter. It runs in the background and provides quick access to essential tools (JSON formatting, color conversion, epoch timestamps) via a global hotkey.
 
-UI Library: macos_ui (for native Apple aesthetics)
+---
 
-Window Management: window_manager (for frameless, floating windows)
+## 🛠 Tech Stack
 
-System Integration: hotkey_manager, system_tray
+- **Framework:** Flutter (macOS Desktop)  
+- **UI Library:** macos_ui (for native Apple aesthetics)  
+- **Window Management:** window_manager (for frameless, floating windows)  
+- **System Integration:** hotkey_manager, system_tray  
+- **State Management:** (Choose one: Riverpod / Provider / Bloc)
 
-State Management: (Choose one: Riverpod / Provider / Bloc)
+---
 
-✅ Development Roadmap / Checklist
+## ✅ Development Roadmap / Checklist
+
 Use this checklist to track your progress.
 
-Phase 1: Project Setup & Window Configuration
+---
 
-Goal: Get a frameless, transparent window running on macOS.
+## Phase 1: Project Setup & Window Configuration
 
-[ ] Initialize Project
+**Goal:** Get a frameless, transparent window running on macOS.
 
-Run flutter create -e macos omnibar
+### Initialize Project
+- [ ] Run `flutter create -e macos omnibar`  
+- [ ] Verify the app runs on the macOS desktop target  
 
-Verify the app runs on the macOS desktop target.
+### Install Core Dependencies
+- [ ] Add `window_manager`, `macos_ui`, and `provider` (or your preferred state manager) to `pubspec.yaml`  
 
-[ ] Install Core Dependencies
+### Configure Main Window
+- [ ] Remove the native title bar  
+- [ ] Set the window size (e.g., 800x600 or 800x60)  
+- [ ] Make the window transparent/translucent  
+- [ ] Center the window on the screen on startup  
 
-Add window_manager, macos_ui, and provider (or your preferred state manager) to pubspec.yaml.
+### Implement "Loss of Focus" Logic
+- [ ] Detect when the user clicks outside the app window  
+- [ ] Minimize or hide the app when focus is lost  
 
-[ ] Configure Main Window
+---
 
-[ ] Remove the native title bar.
+## Phase 2: The UI Skeleton
 
-[ ] Set the window size (e.g., 800x600 or 800x60).
+**Goal:** Create the visual layout of the command bar.
 
-[ ] Make the window transparent/translucent.
+### Theme Setup
+- [ ] Configure `MacosApp` and apply a dark/light theme based on system settings  
 
-[ ] Center the window on the screen on startup.
+### The Search Bar
+- [ ] Create a large, auto-focused text input field at the top  
+- [ ] Remove standard borders to make it look clean/minimal  
 
-[ ] Implement "Loss of Focus" Logic
+### The Results List
+- [ ] Create a `ListView` below the search bar to show search results or tool outputs  
+- [ ] Implement keyboard navigation (Arrow Up/Down) to highlight list items  
 
-[ ] Detect when the user clicks outside the app window.
+---
 
-[ ] Minimize or hide the app when focus is lost.
+## Phase 3: System Integration
 
-Phase 2: The UI Skeleton
+**Goal:** Make the app behave like a background utility.
 
-Goal: Create the visual layout of the command bar.
+### System Tray Icon
+- [ ] Add `system_tray` package  
+- [ ] Create a Menu Bar icon (using an `.ico` or `.png`)  
+- [ ] Add a context menu to the icon (e.g., "Show", "Quit")  
 
-[ ] Theme Setup
+### Global Hotkeys
+- [ ] Add `hotkey_manager`  
+- [ ] Register `Command + K` (or similar) to toggle the window visibility  
+- [ ] Ensure the app does not appear in the Dock (edit `Info.plist` key `LSUIElement` to `true`)  
 
-[ ] Configure MacosApp and apply a dark/light theme based on system settings.
+---
 
-[ ] The Search Bar
+## Phase 4: The Logic Engine (The "Brain")
 
-[ ] Create a large, auto-focused text input field at the top.
+**Goal:** Parse user input and decide which tool to show.
 
-[ ] Remove standard borders to make it look clean/minimal.
+### Input Parser
+- [ ] Create a basic parser that reads the text field  
+- [ ] Implement logic: *If text starts with `json`, switch to JSON mode*  
 
-[ ] The Results List
+### Tool 1: UUID Generator (The "Hello World")
+- [ ] Logic: When user types `uuid`, generate a v4 UUID  
+- [ ] UI: Display the UUID  
+- [ ] Action: Pressing Enter copies it to clipboard  
 
-[ ] Create a ListView below the search bar to show search results or tool outputs.
+### Tool 2: Color Converter
+- [ ] Logic: Detect Hex codes (e.g., `#FF0000`)  
+- [ ] UI: Show a colored box and the RGB/HSL values  
 
-[ ] Implement keyboard navigation (Arrow Up/Down) to highlight list items.
+### Tool 3: JSON Pretty Printer
+- [ ] Logic: Detect if input is valid JSON string  
+- [ ] UI: Show formatted, syntax-highlighted JSON  
 
-Phase 3: System Integration
+---
 
-Goal: Make the app behave like a background utility.
+## Phase 5: Polish & Distribution
 
-[ ] System Tray Icon
+**Goal:** Make it feel like a polished product.
 
-[ ] Add system_tray package.
+### Visual Polish
+- [ ] Add a backdrop blur (Glassmorphism) behind the window  
+- [ ] Add smooth animations when the window appears/disappears  
 
-[ ] Create a Menu Bar icon (using an .ico or .png).
+### Settings Page
+- [ ] Create a small settings view to change the hotkey or default theme  
 
-[ ] Add a context menu to the icon (e.g., "Show", "Quit").
-
-[ ] Global Hotkeys
-
-[ ] Add hotkey_manager.
-
-[ ] Register Command + K (or similar) to toggle the window visibility.
-
-[ ] Ensure the app does not appear in the Dock (edit Info.plist key LSUIElement to true).
-
-Phase 4: The Logic Engine (The "Brain")
-
-Goal: Parse user input and decide which tool to show.
-
-[ ] Input Parser
-
-[ ] Create a basic parser that reads the text field.
-
-[ ] Implement logic: "If text starts with 'json', switch to JSON mode."
-
-[ ] Tool 1: UUID Generator (The "Hello World")
-
-[ ] Logic: When user types uuid, generate a v4 UUID.
-
-[ ] UI: Display the UUID.
-
-[ ] Action: Pressing Enter copies it to clipboard.
-
-[ ] Tool 2: Color Converter
-
-[ ] Logic: Detect Hex codes (e.g., #FF0000).
-
-[ ] UI: Show a colored box and the RGB/HSL values.
-
-[ ] Tool 3: JSON Pretty Printer
-
-[ ] Logic: Detect if input is valid JSON string.
-
-[ ] UI: Show formatted, syntax-highlighted JSON.
-
-Phase 5: Polish & Distribution
-
-Goal: Make it feel like a polished product.
-
-[ ] Visual Polish
-
-[ ] Add a backdrop blur (Glassmorphism) behind the window.
-
-[ ] Add smooth animations when the window appears/disappears.
-
-[ ] Settings Page
-
-[ ] Create a small settings view to change the hotkey or default theme.
-
-[ ] Build for Release
-
-[ ] Update app icon (flutter_launcher_icons).
-
-[ ] Run flutter build macos --release.
+### Build for Release
+- [ ] Update app icon (`flutter_launcher_icons`)  
+- [ ] Run `flutter build macos --release`  
