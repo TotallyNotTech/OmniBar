@@ -12,10 +12,13 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> with WindowListener {
+  bool _isClosing = false;
+
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
+    windowManager.setPreventClose(true);
   }
 
   @override
@@ -25,8 +28,28 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
   }
 
   @override
-  void onWindowClose() {
-    _relinquishFocus();
+  void onWindowClose() async {
+    if (_isClosing) return;
+    _isClosing = true;
+    try {
+      // 3. Hide the Dock icon (Switch app to Accessory mode)
+      await windowManager.setSkipTaskbar(true);
+
+      // 4. Give focus back to the previous app
+      await _relinquishFocus();
+
+      // 5. Cleanup: Remove listener and allow closing
+      windowManager.removeListener(this);
+      await windowManager.setPreventClose(false);
+
+      // 6. Final Close
+      await windowManager.close();
+    } catch (e) {
+      debugPrint("Error closing settings: $e");
+      // Force close if something fails
+      await windowManager.setPreventClose(false);
+      await windowManager.close();
+    }
   }
 
   Future<void> _relinquishFocus() async {
