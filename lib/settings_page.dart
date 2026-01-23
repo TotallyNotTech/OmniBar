@@ -1,14 +1,45 @@
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart';
 
 class SettingsPage extends StatefulWidget {
-  final String? windowId;
-  const SettingsPage({super.key, this.windowId});
+  final String windowId;
+  const SettingsPage({super.key, required this.windowId});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends State<SettingsPage> with WindowListener {
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onWindowClose() {
+    _relinquishFocus();
+  }
+
+  Future<void> _relinquishFocus() async {
+    try {
+      // 👇👇👇 DIRECT NATIVE CALL 👇👇👇
+      // No more "WindowController". Just call the native code directly.
+      const channel = MethodChannel('com.omnibar.app/control');
+      await channel.invokeMethod('relinquishFocus');
+    } catch (e) {
+      debugPrint("Failed to send focus signal: $e");
+    }
+  }
+
   bool _startAtLogin = false;
   bool _darkMode = true;
 

@@ -9,6 +9,7 @@ import 'package:omni_bar/omni_bar_home.dart';
 import 'package:omni_bar/settings_page.dart';
 import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter/services.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();

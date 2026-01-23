@@ -5,9 +5,9 @@ import desktop_multi_window
 
 class MainFlutterWindow: NSWindow {
   // 1. Variable to hold the reference to the app that was active before us.
-  private var previousApp: NSRunningApplication?
+  static var previousApp: NSRunningApplication?
 
-  private var shouldReturnToExternalApp = true
+  static var shouldReturnToExternalApp = true
 
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
@@ -24,8 +24,11 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
+    registerControlChannel(with: flutterViewController.engine.binaryMessenger)
+
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
       RegisterGeneratedPlugins(registry: controller)
+      self.registerControlChannel(with: controller.engine.binaryMessenger)
     }
 
     // 2. Start listening for system notifications about app activation.
@@ -39,6 +42,23 @@ class MainFlutterWindow: NSWindow {
     super.awakeFromNib()
   }
 
+  func registerControlChannel(with messenger: FlutterBinaryMessenger) {
+      let channel = FlutterMethodChannel(
+          name: "com.omnibar.app/control",
+          binaryMessenger: messenger
+      )
+      
+      channel.setMethodCallHandler { (call, result) in
+          if call.method == "relinquishFocus" {
+              // Access the STATIC variable
+              MainFlutterWindow.previousApp?.activate(options: .activateIgnoringOtherApps)
+              result(nil)
+          } else {
+              result(FlutterMethodNotImplemented)
+          }
+      }
+  }
+
   // 3. This function is called by the OS whenever focus changes apps.
   @objc func appDidActivate(_ notification: Notification) {
       // Get the app that just became active.
@@ -48,18 +68,18 @@ class MainFlutterWindow: NSWindow {
       // it means it's an external app (like Safari or VS Code).
       // We save a reference to it.
       if activatedApp.bundleIdentifier != NSRunningApplication.current.bundleIdentifier {
-          previousApp = activatedApp
+          MainFlutterWindow.previousApp = activatedApp
       } else {
         if self.isVisible {
              // If this window (OmniBar) is visible during activation, 
              // the user pressed the Hotkey from outside.
              // We should go back to the external app when done.
-             shouldReturnToExternalApp = true
+             MainFlutterWindow.shouldReturnToExternalApp = true
           } else {
              // If this window is HIDDEN, but the app activated, 
              // it implies the user clicked the SETTINGS window.
              // We should stay in our app when done.
-             shouldReturnToExternalApp = false
+             MainFlutterWindow.shouldReturnToExternalApp = false
           }
       }
   }
@@ -71,9 +91,9 @@ class MainFlutterWindow: NSWindow {
 
     // The Fix: If we have a saved previous app, force macOS to activate it.
     // .activateIgnoringOtherApps is crucial to bypass standard focus rules.
-    if shouldReturnToExternalApp {
+    if MainFlutterWindow.shouldReturnToExternalApp {
         // Go back to Safari/VS Code
-        previousApp?.activate(options: .activateIgnoringOtherApps)
+        MainFlutterWindow.previousApp?.activate(options: .activateIgnoringOtherApps)
     } else {
         // Stay in our app (which gives focus to the next visible window: Settings)
         NSRunningApplication.current.activate(options: .activateIgnoringOtherApps)
