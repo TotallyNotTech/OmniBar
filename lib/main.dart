@@ -147,13 +147,11 @@ Future<void> initSystemTray() async {
   await menu.buildFrom([
     // A regular item with a direct callback
     MenuItemLabel(
-      label: 'Show OmniBar',
+      label: 'Toggle OmniBar',
       onClicked: (menuItem) async {
-        await windowManager.show();
-        await windowManager.focus();
+        showOmniBarGlobal?.call();
       },
     ),
-    MenuSeparator(),
     MenuItemLabel(
       label: 'Settings',
       onClicked: (_) async {

@@ -9,6 +9,8 @@ import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 
+VoidCallback? showOmniBarGlobal;
+
 class OmniBarHome extends StatefulWidget {
   const OmniBarHome({super.key});
 
@@ -42,6 +44,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
     super.initState();
 
     // 3. Initialize Animations
+    showOmniBarGlobal = _toggleWindow;
     _animController = AnimationController(
       vsync: this,
       // Adjust duration for snappiness vs smoothness
@@ -154,6 +157,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
     _focusNode.dispose();
     windowManager.removeListener(this);
     hotKeyManager.unregister(_hotKey);
+    showOmniBarGlobal = null;
     super.dispose();
   }
 
