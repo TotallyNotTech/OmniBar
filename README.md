@@ -25,21 +25,21 @@ Use this checklist to track your progress.
 **Goal:** Get a frameless, transparent window running on macOS.
 
 ### Initialize Project
-- [ ] Run `flutter create -e macos omnibar`  
-- [ ] Verify the app runs on the macOS desktop target  
+- [x] Run `flutter create -e macos omnibar`  
+- [x] Verify the app runs on the macOS desktop target  
 
 ### Install Core Dependencies
-- [ ] Add `window_manager`, `macos_ui`, and `provider` (or your preferred state manager) to `pubspec.yaml`  
+- [x] Add `window_manager`, `macos_ui`, and `provider` (or your preferred state manager) to `pubspec.yaml`  
 
 ### Configure Main Window
-- [ ] Remove the native title bar  
-- [ ] Set the window size (e.g., 800x600 or 800x60)  
-- [ ] Make the window transparent/translucent  
-- [ ] Center the window on the screen on startup  
+- [x] Remove the native title bar  
+- [x] Set the window size (e.g., 800x600 or 800x60)  
+- [x] Make the window transparent/translucent  
+- [x] Center the window on the screen on startup  
 
 ### Implement "Loss of Focus" Logic
-- [ ] Detect when the user clicks outside the app window  
-- [ ] Minimize or hide the app when focus is lost  
+- [x] Detect when the user clicks outside the app window  
+- [x] Minimize or hide the app when focus is lost  
 
 ---
 
@@ -51,8 +51,8 @@ Use this checklist to track your progress.
 - [ ] Configure `MacosApp` and apply a dark/light theme based on system settings  
 
 ### The Search Bar
-- [ ] Create a large, auto-focused text input field at the top  
-- [ ] Remove standard borders to make it look clean/minimal  
+- [x] Create a large, auto-focused text input field at the top  
+- [x] Remove standard borders to make it look clean/minimal  
 
 ### The Results List
 - [ ] Create a `ListView` below the search bar to show search results or tool outputs  
@@ -65,14 +65,14 @@ Use this checklist to track your progress.
 **Goal:** Make the app behave like a background utility.
 
 ### System Tray Icon
-- [ ] Add `system_tray` package  
-- [ ] Create a Menu Bar icon (using an `.ico` or `.png`)  
+- [x] Add `system_tray` package  
+- [x] Create a Menu Bar icon (using an `.ico` or `.png`)  
 - [ ] Add a context menu to the icon (e.g., "Show", "Quit")  
 
 ### Global Hotkeys
-- [ ] Add `hotkey_manager`  
+- [x] Add `hotkey_manager`  
 - [ ] Register `Command + K` (or similar) to toggle the window visibility  
-- [ ] Ensure the app does not appear in the Dock (edit `Info.plist` key `LSUIElement` to `true`)  
+- [x] Ensure the app does not appear in the Dock (edit `Info.plist` key `LSUIElement` to `true`)  
 
 ---
 
@@ -81,21 +81,21 @@ Use this checklist to track your progress.
 **Goal:** Parse user input and decide which tool to show.
 
 ### Input Parser
-- [ ] Create a basic parser that reads the text field  
-- [ ] Implement logic: *If text starts with `json`, switch to JSON mode*  
+- [x] Create a basic parser that reads the text field  
+- [x] Implement logic: *If text starts with `json`, switch to JSON mode*  
 
 ### Tool 1: UUID Generator (The "Hello World")
-- [ ] Logic: When user types `uuid`, generate a v4 UUID  
-- [ ] UI: Display the UUID  
-- [ ] Action: Pressing Enter copies it to clipboard  
+- [x] Logic: When user types `uuid`, generate a v4 UUID  
+- [x] UI: Display the UUID  
+- [x] Action: Pressing Enter copies it to clipboard  
 
 ### Tool 2: Color Converter
 - [ ] Logic: Detect Hex codes (e.g., `#FF0000`)  
 - [ ] UI: Show a colored box and the RGB/HSL values  
 
 ### Tool 3: JSON Pretty Printer
-- [ ] Logic: Detect if input is valid JSON string  
-- [ ] UI: Show formatted, syntax-highlighted JSON  
+- [x] Logic: Detect if input is valid JSON string  
+- [x] UI: Show formatted, syntax-highlighted JSON  
 
 ---
 
