@@ -16,7 +16,8 @@ class UuidTool implements OmniTool {
   bool canHandle(String input) {
     // 2. The Trigger: Only activate if the user types exactly "uuid"
     // (trim whitespace and ignore case)
-    return input.trim().toLowerCase() == 'uuid';
+    return input.trim().toLowerCase() == 'uuid' ||
+        input.trim().toLowerCase() == 'uid';
   }
 
   @override
