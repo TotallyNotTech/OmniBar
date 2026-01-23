@@ -185,16 +185,24 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
               borderRadius: BorderRadius.circular(16),
               child: BackdropFilter(
                 filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // Shrink to fit content
-                  children: [
-                    _buildSearchBar(),
-                    // 5. Display the active tool result if it exists
-                    if (_activeToolWidget != null) ...[
-                      Divider(height: 1, color: Colors.white.withOpacity(0.1)),
-                      _activeToolWidget!,
+                child: SingleChildScrollView(
+                  // We set primary false here so it doesn't fight with the
+                  // tool's internal scroll view.
+                  primary: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min, // Shrink to fit content
+                    children: [
+                      _buildSearchBar(),
+                      // 5. Display the active tool result if it exists
+                      if (_activeToolWidget != null) ...[
+                        Divider(
+                          height: 1,
+                          color: Colors.white.withOpacity(0.1),
+                        ),
+                        _activeToolWidget!,
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

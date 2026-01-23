@@ -32,38 +32,56 @@ class JsonFormatTool implements OmniTool {
   Widget buildDisplay(BuildContext context, String input) {
     try {
       final decoded = jsonDecode(input);
-      // Re-encode with 2-space indentation
       final prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
 
       return Container(
-        // Limit height so giant JSON doesn't take over the whole screen
         constraints: const BoxConstraints(maxHeight: 450),
         width: double.infinity,
+        // This outer padding is fine, keep it.
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3), // Darker background for results
+          color: Colors.black.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
-        child: Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            primary: true,
-            child: SelectableText(
-              // MUST be selectable to copy results!
-              prettyJson,
-              style: TextStyle(
-                color: Colors.greenAccent.shade100, // "Hacker" monospace look
-                fontFamily: 'Courier',
-                fontSize: 13,
-                height: 1.3,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxHeight:
+                    340, // Adjust this value if you want it taller/shorter
+              ),
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  primary: true,
+                  // Removed the hacky internal padding. It shouldn't be needed now.
+                  child: SelectableText(
+                    prettyJson,
+                    style: TextStyle(
+                      color: Colors.greenAccent.shade100,
+                      fontFamily: 'Courier',
+                      fontSize: 13,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Text(
+              "Press Enter to copy and close",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.3),
+                fontSize: 10,
+              ),
+            ),
+          ],
         ),
       );
     } catch (e) {
-      // Should be caught by canHandle, but safety first.
       return const SizedBox.shrink();
     }
   }
