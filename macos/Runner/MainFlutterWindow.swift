@@ -7,6 +7,8 @@ class MainFlutterWindow: NSWindow {
   // 1. Variable to hold the reference to the app that was active before us.
   private var previousApp: NSRunningApplication?
 
+  private var shouldReturnToExternalApp = true
+
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
@@ -47,6 +49,18 @@ class MainFlutterWindow: NSWindow {
       // We save a reference to it.
       if activatedApp.bundleIdentifier != NSRunningApplication.current.bundleIdentifier {
           previousApp = activatedApp
+      } else {
+        if self.isVisible {
+             // If this window (OmniBar) is visible during activation, 
+             // the user pressed the Hotkey from outside.
+             // We should go back to the external app when done.
+             shouldReturnToExternalApp = true
+          } else {
+             // If this window is HIDDEN, but the app activated, 
+             // it implies the user clicked the SETTINGS window.
+             // We should stay in our app when done.
+             shouldReturnToExternalApp = false
+          }
       }
   }
 
@@ -57,7 +71,18 @@ class MainFlutterWindow: NSWindow {
 
     // The Fix: If we have a saved previous app, force macOS to activate it.
     // .activateIgnoringOtherApps is crucial to bypass standard focus rules.
-    previousApp?.activate(options: .activateIgnoringOtherApps)
+    if shouldReturnToExternalApp {
+        // Go back to Safari/VS Code
+        previousApp?.activate(options: .activateIgnoringOtherApps)
+    } else {
+        // Stay in our app (which gives focus to the next visible window: Settings)
+        NSRunningApplication.current.activate(options: .activateIgnoringOtherApps)
+    }
+  }
+
+  override public func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
+    super.order(place, relativeTo: otherWin)
+    hiddenWindowAtLaunch()
   }
 
   // 5. Clean up the observer when the window is destroyed (good practice)
