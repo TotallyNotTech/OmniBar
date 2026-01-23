@@ -1,6 +1,6 @@
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:window_manager/window_manager.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -13,6 +13,12 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> with WindowListener {
   bool _isClosing = false;
+  bool _startAtLogin = false;
+
+  // 1. New State Variable for Theme Mode
+  ThemeMode _themeMode = ThemeMode.system;
+
+  int _pageIndex = 0;
 
   @override
   void initState() {
@@ -63,48 +69,170 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
     }
   }
 
-  bool _startAtLogin = false;
-  bool _darkMode = true;
+  void _updateThemeMode(ThemeMode? newMode) {
+    if (newMode != null) {
+      setState(() {
+        _themeMode = newMode;
+      });
+      // TODO: Save this preference to shared_preferences or similar
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("OmniBar Settings"), centerTitle: true),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return MacosWindow(
+      sidebar: Sidebar(
+        minWidth: 200,
+        // topOffset:
+        //     0, // No extra padding needed since TitleBar handles traffic lights
+        builder: (context, scrollController) {
+          return SidebarItems(
+            currentIndex: _pageIndex,
+            onChanged: (index) {
+              setState(() => _pageIndex = index);
+            },
+            items: const [
+              SidebarItem(
+                leading: MacosIcon(Icons.settings),
+                label: Text('General'),
+              ),
+              SidebarItem(
+                leading: MacosIcon(Icons.rocket_launch),
+                label: Text('Startup'),
+              ),
+              SidebarItem(
+                leading: MacosIcon(Icons.view_agenda),
+                label: Text('Bar Options'),
+              ),
+            ],
+          );
+        },
+      ),
+      child: MacosScaffold(
+        toolBar: const ToolBar(title: Text("OmniBar Settings")),
         children: [
-          _buildHeader("General"),
-          SwitchListTile(
-            title: const Text("Start at Login"),
-            subtitle: const Text(
-              "Launch OmniBar automatically when you sign in.",
-            ),
-            value: _startAtLogin,
-            onChanged: (val) => setState(() => _startAtLogin = val),
-          ),
-          const Divider(),
-          _buildHeader("Appearance"),
-          SwitchListTile(
-            title: const Text("Dark Mode"),
-            value: _darkMode,
-            onChanged: (val) => setState(() => _darkMode = val),
+          ContentArea(
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(20),
+                child: _buildPageContent(_pageIndex),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(String title) {
+  Widget _buildPageContent(int index) {
+    switch (index) {
+      case 0: // General
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader("Appearance"),
+            _buildMacosRadioRow(
+              title: "System Default",
+              value: ThemeMode.system,
+            ),
+            _buildMacosRadioRow(title: "Light Mode", value: ThemeMode.light),
+            _buildMacosRadioRow(title: "Dark Mode", value: ThemeMode.dark),
+          ],
+        );
+      case 1: // Startup
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader("System Startup"),
+            _buildMacosSwitchRow(
+              title: "Start at Login",
+              subtitle: "Launch OmniBar automatically when you sign in.",
+              value: _startAtLogin,
+              onChanged: (val) => setState(() => _startAtLogin = val),
+            ),
+          ],
+        );
+      case 2: // Bar Options
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader("Bar Configuration"),
+            const SizedBox(height: 10),
+            Text(
+              "Future settings for Bar Width, Height, and Position will go here.",
+              style: MacosTheme.of(
+                context,
+              ).typography.body.copyWith(color: MacosColors.systemGrayColor),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          color: Theme.of(context).primaryColor,
+        title,
+        style: MacosTheme.of(context).typography.headline.copyWith(
+          fontSize: 13,
           fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-          fontSize: 12,
+          color: MacosColors.systemGrayColor,
         ),
+      ),
+    );
+  }
+
+  Widget _buildMacosSwitchRow({
+    required String title,
+    String? subtitle,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: MacosTheme.of(context).typography.body),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: MacosTheme.of(context).typography.caption1.copyWith(
+                    color: MacosColors.systemGrayColor,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        MacosSwitch(value: value, onChanged: onChanged),
+      ],
+    );
+  }
+
+  Widget _buildMacosRadioRow({
+    required String title,
+    required ThemeMode value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          MacosRadioButton<ThemeMode>(
+            value: value,
+            groupValue: _themeMode,
+            onChanged: _updateThemeMode,
+          ),
+          const SizedBox(width: 8),
+          Text(title, style: MacosTheme.of(context).typography.body),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/omni_bar_home.dart';
 import 'package:omni_bar/settings_page.dart';
 import 'package:system_tray/system_tray.dart';
@@ -97,12 +98,13 @@ Future<void> _startSettingsWindow(
 
   // Define how the settings window should look
   WindowOptions windowOptions = const WindowOptions(
-    size: Size(500, 650),
+    size: Size(700, 650),
     center: true,
     backgroundColor: Colors.transparent, // Or standard colors
     skipTaskbar: false, // Settings should appear in taskbar
-    titleBarStyle: TitleBarStyle.normal, // Standard title bar
-    title: "OmniBar Settings",
+    // titleBarStyle: TitleBarStyle.normal, // Standard title bar
+    // title: "OmniBar Settings",
+    titleBarStyle: TitleBarStyle.hidden,
   );
 
   // Wait until it's ready, then show it
@@ -187,9 +189,9 @@ class SettingsWindowEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MacosApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
+      theme: MacosThemeData.dark(),
       home: SettingsPage(windowId: windowId),
     );
   }
