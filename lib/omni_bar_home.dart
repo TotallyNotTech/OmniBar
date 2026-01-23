@@ -253,13 +253,62 @@ class _OmniBarHomeState extends State<OmniBarHome>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _buildSearchBar(textColor),
-                          if (_activeToolWidget != null) ...[
-                            Divider(
-                              height: 1,
-                              color: Colors.white.withOpacity(0.1),
-                            ),
-                            _activeToolWidget!,
-                          ],
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            // "easeOutBack" gives it a slight overshoot/pop effect (the whoosh)
+                            switchInCurve: Curves.easeOutBack,
+                            switchOutCurve: Curves.easeIn,
+
+                            transitionBuilder: (child, animation) {
+                              // Combine 3 animations for the perfect feel:
+                              return SizeTransition(
+                                sizeFactor:
+                                    animation, // 1. Expand vertical space
+                                axisAlignment:
+                                    -1.0, // Expand from Top to Bottom
+                                child: FadeTransition(
+                                  opacity: animation, // 2. Fade in
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(
+                                        0.0,
+                                        -0.2,
+                                      ), // 3. Slide down slightly
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                              );
+                            },
+
+                            // We switch between "Content" and "Nothing"
+                            child: _activeToolWidget != null
+                                ? Column(
+                                    // 🔑 KEY IS CRITICAL:
+                                    // using runtimeType ensures we only animate when the TOOL changes
+                                    // (e.g. Nothing -> JSON), not on every single character you type.
+                                    key: ValueKey(_activeTool?.runtimeType),
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Divider(
+                                        height: 1,
+                                        color: Colors.white.withOpacity(0.1),
+                                      ),
+                                      _activeToolWidget!,
+                                    ],
+                                  )
+                                : const SizedBox.shrink(), // Empty widget when idle
+                          ),
+                          // 👆👆👆 END ANIMATION BLOCK 👆👆👆
+
+                          // if (_activeToolWidget != null) ...[
+                          //   Divider(
+                          //     height: 1,
+                          //     color: Colors.white.withOpacity(0.1),
+                          //   ),
+                          //   _activeToolWidget!,
+                          // ],
                         ],
                       ),
                     ),
