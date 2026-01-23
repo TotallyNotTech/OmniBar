@@ -205,7 +205,11 @@ class SettingsWindowEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = context.watch<ThemeProvider>().themeMode;
+    // TODO: implement light mode for settings page
+    // This is currently blocked by a Bug in Macos UI
+    // https://github.com/macosui/macos_ui/pull/588
+
+    final themeMode = ThemeMode.dark;
     return MacosApp(
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
