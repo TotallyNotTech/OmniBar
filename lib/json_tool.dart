@@ -51,7 +51,7 @@ class JsonFormatTool implements OmniTool {
             ConstrainedBox(
               constraints: const BoxConstraints(
                 maxHeight:
-                    340, // Adjust this value if you want it taller/shorter
+                    200, // Adjust this value if you want it taller/shorter
               ),
               child: Scrollbar(
                 thumbVisibility: true,

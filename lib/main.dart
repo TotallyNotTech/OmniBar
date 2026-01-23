@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
@@ -12,8 +13,11 @@ void main() async {
   // 1. Initialize Window Manager
   await windowManager.ensureInitialized();
 
+  const Size windowSize = Size(800, 600);
+  const double topOffset = 350.0;
+
   WindowOptions windowOptions = const WindowOptions(
-    size: Size(800, 600), // Size of your search bar + results area
+    size: windowSize, // Size of your search bar + results area
     center: true,
     backgroundColor: Colors.transparent, // Crucial for "Glass" effect
     skipTaskbar: true, // Set to true if you don't want it in the Dock
@@ -22,6 +26,11 @@ void main() async {
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    Offset currentPos = await windowManager.getPosition();
+
+    // Use current position to move the window down
+    await windowManager.setPosition(Offset(currentPos.dx, topOffset));
+
     await windowManager.show();
     await windowManager.focus();
   });
