@@ -103,6 +103,10 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
   // 4. Updated Toggle Logic to handle animations
   Future<void> _toggleWindow() async {
+    // Prevent duplicate calls
+    if (_animController.status == AnimationStatus.reverse) {
+      return;
+    }
     // If it's currently visible or mid-animation showing...
     if (_animController.isCompleted ||
         _animController.status == AnimationStatus.forward) {
@@ -131,9 +135,9 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
     // 1. Play the reverse animation and wait for it to finish.
     // .orCancel handles cases where it's interrupted.
-    if (mounted) {
-      await _animController.reverse().orCancel;
-    }
+
+    await _animController.reverse().orCancel;
+
     // 2. NOW hide the native window, after the UI has visibly gone.
     await windowManager.hide();
 
