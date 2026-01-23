@@ -45,6 +45,17 @@ class _OmniBarHomeState extends State<OmniBarHome> with WindowListener {
     _textController.addListener(_onTextChanged);
 
     windowManager.setIgnoreMouseEvents(true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Add the same tiny delay we use in _toggleWindow to ensure
+      // the native window is fully ready to accept input.
+      Future.delayed(const Duration(milliseconds: 50), () {
+        // Check 'mounted' to ensure the widget still exists before calling setState or focusing
+        if (mounted) {
+          _focusNode.requestFocus();
+        }
+      });
+    });
   }
 
   void _initHotKeys() async {
