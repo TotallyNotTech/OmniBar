@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:omni_bar/omni_tools.dart';
+import 'package:omni_bar/theme_provider.dart';
+import 'package:provider/provider.dart';
 // 1. Import the package
 import 'package:uuid/uuid.dart';
 
@@ -27,40 +29,62 @@ class UuidTool implements OmniTool {
     // We use 'const Uuid()' for efficiency as the generator instance can be reused.
     final displayUuid = _cachedResult ?? "Error";
 
-    // 4. The UI: Consistent container style, but different accent color
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24), // Generous padding for emphasis
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3), // Dark background
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SelectableText(
-            displayUuid,
-            style: TextStyle(
-              // Using a blue accent to differentiate from JSON green
-              color: Colors.cyanAccent.shade100,
-              fontFamily: 'Courier', // Monospace is essential for UUIDs
-              fontSize: 26, // Nice and big
-              fontWeight: FontWeight.w600,
-            ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        bool isDark;
+        if (themeProvider.themeMode == ThemeMode.system) {
+          isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+        } else {
+          isDark = themeProvider.themeMode == ThemeMode.dark;
+        }
+
+        final backgroundColor = isDark
+            ? Colors.black.withOpacity(0.3)
+            : Colors.white.withOpacity(0);
+        final borderColor = isDark
+            ? Colors.white.withOpacity(0.1)
+            : Colors.black.withOpacity(0.1);
+        final textColor = isDark
+            ? Colors.white.withOpacity(0.6)
+            : Colors.black.withOpacity(0.6);
+        final accentColor = isDark
+            ? Colors.cyanAccent.shade100
+            : Colors.blue.shade800;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24), // Generous padding for emphasis
+          decoration: BoxDecoration(
+            color: backgroundColor, // Dark background
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
           ),
-          const SizedBox(height: 8),
-          Text(
-            "Press Enter to copy and close",
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
-              fontSize: 10,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SelectableText(
+                displayUuid,
+                style: TextStyle(
+                  // Using a blue accent to differentiate from JSON green
+                  color: accentColor,
+                  fontFamily: 'Courier', // Monospace is essential for UUIDs
+                  fontSize: 26, // Nice and big
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Press Enter to copy and close",
+                style: TextStyle(color: textColor, fontSize: 10),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
+
+    // 4. The UI: Consistent container style, but different accent color
   }
 
   @override

@@ -119,8 +119,9 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
     // 1. Play the reverse animation and wait for it to finish.
     // .orCancel handles cases where it's interrupted.
-    await _animController.reverse().orCancel;
-
+    if (mounted) {
+      await _animController.reverse().orCancel;
+    }
     // 2. NOW hide the native window, after the UI has visibly gone.
     await windowManager.hide();
 
