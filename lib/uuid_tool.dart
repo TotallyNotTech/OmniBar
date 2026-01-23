@@ -40,16 +40,16 @@ class UuidTool implements OmniTool {
 
         final backgroundColor = isDark
             ? Colors.black.withOpacity(0.3)
-            : Colors.white.withOpacity(0);
+            : Colors.black.withOpacity(0.7);
         final borderColor = isDark
             ? Colors.white.withOpacity(0.1)
             : Colors.black.withOpacity(0.1);
-        final textColor = isDark
-            ? Colors.white.withOpacity(0.6)
-            : Colors.black.withOpacity(0.6);
-        final accentColor = isDark
-            ? Colors.cyanAccent.shade100
-            : Colors.blue.shade800;
+        // final textColor = isDark
+        //     ? Colors.white.withOpacity(0.6)
+        //     : Colors.black.withOpacity(0.6);
+        // final accentColor = isDark
+        //     ? Colors.cyanAccent.shade100
+        //     : Colors.blue.shade800;
 
         return Container(
           width: double.infinity,
@@ -67,7 +67,7 @@ class UuidTool implements OmniTool {
                 displayUuid,
                 style: TextStyle(
                   // Using a blue accent to differentiate from JSON green
-                  color: accentColor,
+                  color: Colors.cyanAccent.shade100,
                   fontFamily: 'Courier', // Monospace is essential for UUIDs
                   fontSize: 26, // Nice and big
                   fontWeight: FontWeight.w600,
@@ -76,7 +76,10 @@ class UuidTool implements OmniTool {
               const SizedBox(height: 8),
               Text(
                 "Press Enter to copy and close",
-                style: TextStyle(color: textColor, fontSize: 10),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.3),
+                  fontSize: 10,
+                ),
               ),
             ],
           ),
