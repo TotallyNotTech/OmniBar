@@ -1,7 +1,7 @@
 import Cocoa
 import FlutterMacOS
-// ERROR: Needs AppKit for NSWorkspace notifications
 import AppKit
+import desktop_multi_window
 
 class MainFlutterWindow: NSWindow {
   // 1. Variable to hold the reference to the app that was active before us.
@@ -21,6 +21,10 @@ class MainFlutterWindow: NSWindow {
     flutterViewController.backgroundColor = .clear
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+
+    FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
+      RegisterGeneratedPlugins(registry: controller)
+    }
 
     // 2. Start listening for system notifications about app activation.
     NSWorkspace.shared.notificationCenter.addObserver(
