@@ -155,12 +155,35 @@ Future<void> initSystemTray() async {
     MenuItemLabel(
       label: 'Settings',
       onClicked: (_) async {
-        // Create the new window using WindowController
-        await WindowController.create(
-          WindowConfiguration(
-            arguments: jsonEncode({'action': 'settings_init'}),
+        final subWindowIds = await WindowController.getAll();
+        print(
+          "you have ${subWindowIds.map((id) => id.arguments)} windows open",
+        );
+        // if (subWindowIds.any((id) => id.arguments.isNotEmpty)) {
+        print(
+          subWindowIds.any(
+            (single) => single.arguments.contains("settings_init"),
           ),
         );
+        // To prevent duplicate windows, we check if the window is already open
+        if (subWindowIds.any(
+          (single) => single.arguments.contains("settings_init"),
+        )) {
+          final activeId = subWindowIds
+              .firstWhere(
+                (single) => single.arguments.contains("settings_init"),
+              )
+              .windowId;
+          await WindowController.fromWindowId(activeId).show();
+          // await WindowController.fromWindowId(activeId).focus();
+        } else {
+          // Create the new window using WindowController
+          await WindowController.create(
+            WindowConfiguration(
+              arguments: jsonEncode({'action': 'settings_init'}),
+            ),
+          );
+        }
       },
     ),
     MenuSeparator(),
