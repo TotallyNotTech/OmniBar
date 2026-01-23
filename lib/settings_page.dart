@@ -85,20 +85,41 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
           return SidebarItems(
             currentIndex: _pageIndex,
             onChanged: (index) {
+              if (index == 4) return;
               setState(() => _pageIndex = index);
             },
             items: const [
               SidebarItem(
-                leading: MacosIcon(Icons.settings),
+                leading: MacosIcon(Icons.settings_outlined),
                 label: Text('General'),
               ),
               SidebarItem(
-                leading: MacosIcon(Icons.rocket_launch),
+                leading: MacosIcon(Icons.speed),
                 label: Text('Startup'),
               ),
               SidebarItem(
-                leading: MacosIcon(Icons.view_agenda),
+                leading: MacosIcon(Icons.view_agenda_outlined),
                 label: Text('Bar Options'),
+              ),
+              SidebarItem(
+                leading: MacosIcon(Icons.extension_outlined),
+                label: Text('Plugins'),
+              ),
+              SidebarItem(
+                label: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 8,
+                  ), // Add breathing room
+                  child: Divider(
+                    height: 1,
+                    color:
+                        MacosColors.systemGrayColor, // Or use .withOpacity(0.3)
+                  ),
+                ),
+              ),
+              SidebarItem(
+                label: Text('About OmniBar'),
+                leading: MacosIcon(Icons.info_outline),
               ),
             ],
           );
@@ -127,7 +148,11 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader("Appearance"),
+            _buildSectionHeader(
+              "Appearance",
+              subtitle:
+                  "Choose the color theme the OmniBar uses. \nYou can either choose light, dark or to follow the system settings.",
+            ),
             _buildMacosRadioRow(
               title: "System Default",
               value: ThemeMode.system,
@@ -145,6 +170,19 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               value: ThemeMode.dark,
               themeProvider: themeProvider,
               onChanged: (v) => themeProvider.setTheme(v),
+            ),
+            SizedBox(height: 20),
+            _buildSectionHeader(
+              "Trigger Hotkey",
+              subtitle:
+                  "You can configure a hotkey to toggle the visibility of OmniBar.",
+            ),
+            Placeholder(fallbackHeight: 40),
+            Text(
+              "Tip: Pressing ESCAPE hides the bar.",
+              style: MacosTheme.of(context).typography.caption1.copyWith(
+                color: MacosColors.systemGrayColor,
+              ),
             ),
           ],
         );
@@ -180,16 +218,31 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
     }
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, {String? subtitle}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: MacosTheme.of(context).typography.headline.copyWith(
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-          color: MacosColors.systemGrayColor,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: MacosTheme.of(context).typography.headline.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: MacosColors.systemGrayColor,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 8),
+
+            Text(
+              subtitle,
+              style: MacosTheme.of(context).typography.caption1.copyWith(
+                color: MacosColors.systemGrayColor,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
