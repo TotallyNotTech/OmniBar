@@ -8,6 +8,8 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/omni_bar_home.dart';
 import 'package:omni_bar/settings_page.dart';
+import 'package:omni_bar/theme_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/services.dart';
@@ -86,7 +88,14 @@ Future<void> _startOmniBarApp() async {
   await hotKeyManager.unregisterAll();
   await initSystemTray();
 
-  runApp(const OmniBarApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const OmniBarApp(),
+    ),
+  );
+
+  // runApp(const OmniBarApp());
 }
 
 Future<void> _startSettingsWindow(
@@ -113,7 +122,14 @@ Future<void> _startSettingsWindow(
     await windowManager.focus();
   });
 
-  runApp(SettingsWindowEntry(windowId: windowId, args: args));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: SettingsWindowEntry(windowId: windowId, args: args),
+    ),
+  );
+
+  // runApp(SettingsWindowEntry(windowId: windowId, args: args));
 }
 
 Future<void> initSystemTray() async {
@@ -189,9 +205,12 @@ class SettingsWindowEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.watch<ThemeProvider>().themeMode;
     return MacosApp(
       debugShowCheckedModeBanner: false,
-      theme: MacosThemeData.dark(),
+      themeMode: themeMode,
+      theme: MacosThemeData.light(),
+      darkTheme: MacosThemeData.dark(),
       home: SettingsPage(windowId: windowId),
     );
   }

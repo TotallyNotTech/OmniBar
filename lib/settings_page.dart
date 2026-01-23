@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:macos_ui/macos_ui.dart';
+import 'package:omni_bar/theme_provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
   final String windowId;
@@ -14,9 +16,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> with WindowListener {
   bool _isClosing = false;
   bool _startAtLogin = false;
-
-  // 1. New State Variable for Theme Mode
-  ThemeMode _themeMode = ThemeMode.system;
 
   int _pageIndex = 0;
 
@@ -69,17 +68,9 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
     }
   }
 
-  void _updateThemeMode(ThemeMode? newMode) {
-    if (newMode != null) {
-      setState(() {
-        _themeMode = newMode;
-      });
-      // TODO: Save this preference to shared_preferences or similar
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
     return MacosWindow(
       sidebar: Sidebar(
         minWidth: 200,
@@ -116,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               return SingleChildScrollView(
                 controller: scrollController,
                 padding: const EdgeInsets.all(20),
-                child: _buildPageContent(_pageIndex),
+                child: _buildPageContent(_pageIndex, themeProvider),
               );
             },
           ),
@@ -125,7 +116,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
     );
   }
 
-  Widget _buildPageContent(int index) {
+  Widget _buildPageContent(int index, ThemeProvider themeProvider) {
     switch (index) {
       case 0: // General
         return Column(
@@ -135,9 +126,21 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
             _buildMacosRadioRow(
               title: "System Default",
               value: ThemeMode.system,
+              themeProvider: themeProvider,
+              onChanged: (v) => themeProvider.setTheme(v),
             ),
-            _buildMacosRadioRow(title: "Light Mode", value: ThemeMode.light),
-            _buildMacosRadioRow(title: "Dark Mode", value: ThemeMode.dark),
+            _buildMacosRadioRow(
+              title: "Light Mode",
+              value: ThemeMode.light,
+              themeProvider: themeProvider,
+              onChanged: (v) => themeProvider.setTheme(v),
+            ),
+            _buildMacosRadioRow(
+              title: "Dark Mode",
+              value: ThemeMode.dark,
+              themeProvider: themeProvider,
+              onChanged: (v) => themeProvider.setTheme(v),
+            ),
           ],
         );
       case 1: // Startup
@@ -220,6 +223,8 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
   Widget _buildMacosRadioRow({
     required String title,
     required ThemeMode value,
+    required ThemeProvider themeProvider,
+    required Function(ThemeMode) onChanged,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -227,8 +232,10 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
         children: [
           MacosRadioButton<ThemeMode>(
             value: value,
-            groupValue: _themeMode,
-            onChanged: _updateThemeMode,
+            groupValue: themeProvider.themeMode,
+            onChanged: (val) {
+              if (val != null) onChanged(val);
+            },
           ),
           const SizedBox(width: 8),
           Text(title, style: MacosTheme.of(context).typography.body),

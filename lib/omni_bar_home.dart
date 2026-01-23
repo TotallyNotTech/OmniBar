@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:omni_bar/json_tool.dart';
 import 'package:omni_bar/omni_tools.dart';
+import 'package:omni_bar/theme_provider.dart';
 import 'package:omni_bar/uuid_tool.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 
 class OmniBarHome extends StatefulWidget {
@@ -79,6 +81,14 @@ class _OmniBarHomeState extends State<OmniBarHome>
     );
   }
 
+  @override
+  void onWindowFocus() {
+    // 👇 RELOAD THEME ON FOCUS
+    // This ensures that if you changed settings and clicked back to the bar,
+    // the new theme applies instantly.
+    context.read<ThemeProvider>().reload();
+  }
+
   // 4. Updated Toggle Logic to handle animations
   Future<void> _toggleWindow() async {
     // If it's currently visible or mid-animation showing...
@@ -88,6 +98,8 @@ class _OmniBarHomeState extends State<OmniBarHome>
     } else {
       // Opening sequence:
       // 1. Show the native window instantly (it's transparent right now)
+      context.read<ThemeProvider>().reload();
+
       await windowManager.show();
       await windowManager.focus();
 
@@ -174,6 +186,18 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    bool isDark;
+    if (themeProvider.themeMode == ThemeMode.system) {
+      isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    } else {
+      isDark = themeProvider.themeMode == ThemeMode.dark;
+    }
+    final backgroundColor = isDark
+        ? Colors.black.withOpacity(0.6)
+        : Colors.white.withOpacity(0.6);
+    final textColor = isDark ? Colors.white : Colors.black;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Center(
@@ -203,7 +227,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
                 curve: Curves.easeOut,
                 width: 700,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: backgroundColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.white.withOpacity(0.2)),
                   boxShadow: [
@@ -223,7 +247,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildSearchBar(),
+                          _buildSearchBar(textColor),
                           if (_activeToolWidget != null) ...[
                             Divider(
                               height: 1,
@@ -244,7 +268,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(Color textColor) {
     return Scrollbar(
       controller: _inputScrollController,
       thumbVisibility: true,
@@ -267,16 +291,16 @@ class _OmniBarHomeState extends State<OmniBarHome>
               controller: _textController,
               scrollController: _inputScrollController,
               focusNode: _focusNode,
-              style: const TextStyle(color: Colors.white, fontSize: 24),
+              style: TextStyle(color: textColor, fontSize: 24),
               maxLines: null,
               textAlignVertical: TextAlignVertical.center,
               keyboardType: TextInputType.multiline,
               scrollPhysics: const ClampingScrollPhysics(),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: "Enter a command...",
-                hintStyle: TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: textColor),
                 border: InputBorder.none,
-                prefixIcon: Icon(Icons.search, color: Colors.white54, size: 28),
+                prefixIcon: Icon(Icons.search, color: textColor, size: 28),
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
