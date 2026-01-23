@@ -1,16 +1,62 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:omni_bar/omni_bar_home.dart';
+import 'package:omni_bar/settings_page.dart';
 import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 1. Initialize Window Manager
+  await windowManager.ensureInitialized();
+
+  if (args.firstOrNull == 'multi_window') {
+    final windowController = await WindowController.fromCurrentEngine();
+    final argument =
+        jsonDecode(windowController.arguments) as Map<String, dynamic>;
+
+    // 1. FIX: Call a setup function for the Settings Window
+    await _startSettingsWindow(windowController.windowId, argument);
+  } else {
+    await _startOmniBarApp();
+  }
+
+  // const Size windowSize = Size(800, 600);
+  // const double topOffset = 350.0;
+
+  // WindowOptions windowOptions = const WindowOptions(
+  //   size: windowSize, // Size of your search bar + results area
+  //   center: true,
+  //   backgroundColor: Colors.transparent, // Crucial for "Glass" effect
+  //   skipTaskbar: true, // Set to true if you don't want it in the Dock
+  //   // titleBarStyle: TitleBarStyle.hidden, // Removes the mac title bar
+  //   alwaysOnTop: true, // Keeps it above other windows
+  // );
+
+  // await windowManager.waitUntilReadyToShow(windowOptions, () async {
+  //   Offset currentPos = await windowManager.getPosition();
+
+  //   // Use current position to move the window down
+  //   await windowManager.setPosition(Offset(currentPos.dx, topOffset));
+
+  //   await windowManager.show();
+  //   await windowManager.focus();
+  // });
+
+  // await hotKeyManager.unregisterAll();
+
+  // await initSystemTray();
+
+  // runApp(const OmniBarApp());
+}
+
+Future<void> _startOmniBarApp() async {
   await windowManager.ensureInitialized();
 
   const Size windowSize = Size(800, 600);
@@ -36,10 +82,35 @@ void main() async {
   });
 
   await hotKeyManager.unregisterAll();
-
   await initSystemTray();
 
   runApp(const OmniBarApp());
+}
+
+Future<void> _startSettingsWindow(
+  String windowId,
+  Map<String, dynamic> args,
+) async {
+  // Initialize window manager inside this new isolate
+  await windowManager.ensureInitialized();
+
+  // Define how the settings window should look
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(500, 650),
+    center: true,
+    backgroundColor: Colors.transparent, // Or standard colors
+    skipTaskbar: false, // Settings should appear in taskbar
+    titleBarStyle: TitleBarStyle.normal, // Standard title bar
+    title: "OmniBar Settings",
+  );
+
+  // Wait until it's ready, then show it
+  await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
+  runApp(SettingsWindowEntry(windowId: windowId, args: args));
 }
 
 Future<void> initSystemTray() async {
@@ -61,6 +132,18 @@ Future<void> initSystemTray() async {
       onClicked: (menuItem) async {
         await windowManager.show();
         await windowManager.focus();
+      },
+    ),
+    MenuSeparator(),
+    MenuItemLabel(
+      label: 'Settings',
+      onClicked: (_) async {
+        // Create the new window using WindowController
+        await WindowController.create(
+          WindowConfiguration(
+            arguments: jsonEncode({'action': 'settings_init'}),
+          ),
+        );
       },
     ),
     MenuSeparator(),
@@ -92,5 +175,21 @@ class OmniBarApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(home: const OmniBarHome());
+  }
+}
+
+class SettingsWindowEntry extends StatelessWidget {
+  final String windowId;
+  final Map<String, dynamic>? args;
+
+  const SettingsWindowEntry({super.key, required this.windowId, this.args});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: SettingsPage(windowId: windowId),
+    );
   }
 }
