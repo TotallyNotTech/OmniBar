@@ -26,6 +26,11 @@ class _OmniBarHomeState extends State<OmniBarHome>
     modifiers: [HotKeyModifier.meta], // 'Meta' is Command on macOS
     scope: HotKeyScope.system, // Global (works even when app is not focused)
   );
+  final HotKey _cancelHotKey = HotKey(
+    key: PhysicalKeyboardKey.escape,
+    modifiers: [],
+    scope: HotKeyScope.inapp,
+  );
 
   // 2. Animation Controllers defined here
   late AnimationController _animController;
@@ -80,6 +85,10 @@ class _OmniBarHomeState extends State<OmniBarHome>
   void _initHotKeys() async {
     await hotKeyManager.register(
       _hotKey,
+      keyDownHandler: (_) => _toggleWindow(),
+    );
+    await hotKeyManager.register(
+      _cancelHotKey,
       keyDownHandler: (_) => _toggleWindow(),
     );
   }
@@ -156,7 +165,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
     _inputScrollController.dispose();
     _focusNode.dispose();
     windowManager.removeListener(this);
-    hotKeyManager.unregister(_hotKey);
+    hotKeyManager.unregisterAll();
     showOmniBarGlobal = null;
     super.dispose();
   }
