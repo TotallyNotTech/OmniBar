@@ -17,7 +17,6 @@ import 'package:flutter/services.dart';
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Initialize Window Manager
   await windowManager.ensureInitialized();
 
   if (args.firstOrNull == 'multi_window') {
@@ -25,39 +24,10 @@ void main(List<String> args) async {
     final argument =
         jsonDecode(windowController.arguments) as Map<String, dynamic>;
 
-    // 1. FIX: Call a setup function for the Settings Window
     await _startSettingsWindow(windowController.windowId, argument);
   } else {
     await _startOmniBarApp();
   }
-
-  // const Size windowSize = Size(800, 600);
-  // const double topOffset = 350.0;
-
-  // WindowOptions windowOptions = const WindowOptions(
-  //   size: windowSize, // Size of your search bar + results area
-  //   center: true,
-  //   backgroundColor: Colors.transparent, // Crucial for "Glass" effect
-  //   skipTaskbar: true, // Set to true if you don't want it in the Dock
-  //   // titleBarStyle: TitleBarStyle.hidden, // Removes the mac title bar
-  //   alwaysOnTop: true, // Keeps it above other windows
-  // );
-
-  // await windowManager.waitUntilReadyToShow(windowOptions, () async {
-  //   Offset currentPos = await windowManager.getPosition();
-
-  //   // Use current position to move the window down
-  //   await windowManager.setPosition(Offset(currentPos.dx, topOffset));
-
-  //   await windowManager.show();
-  //   await windowManager.focus();
-  // });
-
-  // await hotKeyManager.unregisterAll();
-
-  // await initSystemTray();
-
-  // runApp(const OmniBarApp());
 }
 
 Future<void> _startOmniBarApp() async {
@@ -71,7 +41,6 @@ Future<void> _startOmniBarApp() async {
     center: true,
     backgroundColor: Colors.transparent, // Crucial for "Glass" effect
     skipTaskbar: true, // Set to true if you don't want it in the Dock
-    // titleBarStyle: TitleBarStyle.hidden, // Removes the mac title bar
     alwaysOnTop: true, // Keeps it above other windows
   );
 
@@ -94,8 +63,6 @@ Future<void> _startOmniBarApp() async {
       child: const OmniBarApp(),
     ),
   );
-
-  // runApp(const OmniBarApp());
 }
 
 Future<void> _startSettingsWindow(
@@ -111,8 +78,6 @@ Future<void> _startSettingsWindow(
     center: true,
     backgroundColor: Colors.transparent, // Or standard colors
     skipTaskbar: false, // Settings should appear in taskbar
-    // titleBarStyle: TitleBarStyle.normal, // Standard title bar
-    // title: "OmniBar Settings",
     titleBarStyle: TitleBarStyle.hidden,
   );
 
@@ -128,8 +93,6 @@ Future<void> _startSettingsWindow(
       child: SettingsWindowEntry(windowId: windowId, args: args),
     ),
   );
-
-  // runApp(SettingsWindowEntry(windowId: windowId, args: args));
 }
 
 Future<void> initSystemTray() async {
@@ -137,7 +100,6 @@ Future<void> initSystemTray() async {
 
   // Initialize the tray with the path to the real file
   await systemTray.initSystemTray(
-    title: "", // No text, just the icon
     iconPath: "assets/tray_icon.png",
     isTemplate: true,
   );
@@ -145,7 +107,6 @@ Future<void> initSystemTray() async {
   // Define the Menu
   final Menu menu = Menu();
   await menu.buildFrom([
-    // A regular item with a direct callback
     MenuItemLabel(
       label: 'Toggle OmniBar',
       onClicked: (menuItem) async {
@@ -159,12 +120,6 @@ Future<void> initSystemTray() async {
         print(
           "you have ${subWindowIds.map((id) => id.arguments)} windows open",
         );
-        // if (subWindowIds.any((id) => id.arguments.isNotEmpty)) {
-        print(
-          subWindowIds.any(
-            (single) => single.arguments.contains("settings_init"),
-          ),
-        );
         // To prevent duplicate windows, we check if the window is already open
         if (subWindowIds.any(
           (single) => single.arguments.contains("settings_init"),
@@ -175,7 +130,6 @@ Future<void> initSystemTray() async {
               )
               .windowId;
           await WindowController.fromWindowId(activeId).show();
-          // await WindowController.fromWindowId(activeId).focus();
         } else {
           // Create the new window using WindowController
           await WindowController.create(
@@ -190,7 +144,7 @@ Future<void> initSystemTray() async {
     MenuItemLabel(
       label: 'Quit',
       onClicked: (menuItem) {
-        // This is how you fully terminate the background app
+        // Gracefully terminate the background app
         exit(0);
       },
     ),
