@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:macos_ui/macos_ui.dart';
@@ -54,6 +56,9 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
       // Force close if something fails
       await windowManager.setPreventClose(false);
       await windowManager.close();
+    } finally {
+      Isolate.current.kill(priority: Isolate.immediate);
+      super.onWindowClose();
     }
   }
 
