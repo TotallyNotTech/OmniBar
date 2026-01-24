@@ -25,10 +25,12 @@ class MainFlutterWindow: NSWindow {
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     registerControlChannel(with: flutterViewController.engine.binaryMessenger)
+    registerSyncChannel(with: flutterViewController.engine.binaryMessenger)
 
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
       RegisterGeneratedPlugins(registry: controller)
       self.registerControlChannel(with: controller.engine.binaryMessenger)
+      self.registerSyncChannel(with: controller.engine.binaryMessenger)
     }
 
     // 2. Start listening for system notifications about app activation.
@@ -41,6 +43,35 @@ class MainFlutterWindow: NSWindow {
 
     super.awakeFromNib()
   }
+
+  func registerSyncChannel(with messenger: FlutterBinaryMessenger) {
+    let syncChannel = FlutterMethodChannel(
+        name: "com.omnibar.app/sync",
+        binaryMessenger: messenger
+    )
+
+    syncChannel.setMethodCallHandler { (call, result) in
+      if call.method == "hotkeyChanged" {
+        result(nil)
+        
+        // --- NATIVE BROADCAST LOGIC ---
+        // Iterate through all windows in the app to find Flutter engines
+        for window in NSApp.windows {
+            // Check if the window has a Flutter content view
+            if let controller = window.contentViewController as? FlutterViewController {
+                let targetChannel = FlutterMethodChannel(
+                    name: "com.omnibar.app/sync",
+                    binaryMessenger: controller.engine.binaryMessenger
+                )
+                targetChannel.invokeMethod("hotkeyChanged", arguments: nil)
+            }
+        }
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+  
 
   func registerControlChannel(with messenger: FlutterBinaryMessenger) {
       let channel = FlutterMethodChannel(

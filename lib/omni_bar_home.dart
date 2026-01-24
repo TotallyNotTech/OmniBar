@@ -1,15 +1,15 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:omni_bar/global_control.dart';
+import 'package:omni_bar/hotkey_provider.dart';
 import 'package:omni_bar/json_tool.dart';
 import 'package:omni_bar/omni_tools.dart';
 import 'package:omni_bar/theme_provider.dart';
 import 'package:omni_bar/uuid_tool.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui' as ui;
-
-VoidCallback? showOmniBarGlobal;
+import 'package:window_manager/window_manager.dart';
 
 class OmniBarHome extends StatefulWidget {
   const OmniBarHome({super.key});
@@ -21,16 +21,6 @@ class OmniBarHome extends StatefulWidget {
 class _OmniBarHomeState extends State<OmniBarHome>
     with WindowListener, SingleTickerProviderStateMixin {
   // Define initial hotkey: Cmd + K
-  final HotKey _hotKey = HotKey(
-    key: PhysicalKeyboardKey.keyK,
-    modifiers: [HotKeyModifier.meta], // 'Meta' is Command on macOS
-    scope: HotKeyScope.system, // Global (works even when app is not focused)
-  );
-  final HotKey _cancelHotKey = HotKey(
-    key: PhysicalKeyboardKey.escape,
-    modifiers: [],
-    scope: HotKeyScope.inapp,
-  );
 
   // 2. Animation Controllers defined here
   late AnimationController _animController;
@@ -48,49 +38,46 @@ class _OmniBarHomeState extends State<OmniBarHome>
   void initState() {
     super.initState();
 
-    // 3. Initialize Animations
-    showOmniBarGlobal = _toggleWindow;
+    // 1. Initialize purely local variables (Controllers)
+    OmniController.registerCallback(_toggleWindow);
     _animController = AnimationController(
       vsync: this,
-      // Adjust duration for snappiness vs smoothness
       duration: const Duration(milliseconds: 200),
     );
 
-    // Slide from slightly above (-0.2y) to exactly center (0y)
-    // Using easeOutCubic for a nice "settling" effect
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _animController,
             curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic, // Faster exit
+            reverseCurve: Curves.easeInCubic,
           ),
         );
 
-    // Show on first startup
+    _tools = [JsonFormatTool(), UuidTool()];
+    windowManager.addListener(this);
+    _textController.addListener(_onTextChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OmniController.toggleUI = _toggleWindow;
+      debugPrint("OmniController.toggleUI assigned in post frame");
+    });
+
+    // 2. Start the one and only setup sequence
+    _setupApp();
+  }
+
+  Future<void> _setupApp() async {
+    // We don't load or init hotkeys here anymore!
+    // main.dart handles that globally.
+
+    // Just start animations and request focus
     _animController.forward().whenComplete(() {
       if (mounted) {
         windowManager.setIgnoreMouseEvents(false);
         _focusNode.requestFocus();
       }
     });
-
-    _tools = [JsonFormatTool(), UuidTool()];
-    windowManager.addListener(this);
-    _initHotKeys();
-    _textController.addListener(_onTextChanged);
-    // windowManager.setIgnoreMouseEvents(true);
-  }
-
-  void _initHotKeys() async {
-    await hotKeyManager.register(
-      _hotKey,
-      keyDownHandler: (_) => _toggleWindow(),
-    );
-    await hotKeyManager.register(
-      _cancelHotKey,
-      keyDownHandler: (_) => _toggleWindow(),
-    );
   }
 
   @override
@@ -99,6 +86,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
     // This ensures that if you changed settings and clicked back to the bar,
     // the new theme applies instantly.
     context.read<ThemeProvider>().reload();
+    context.read<HotKeyProvider>().reload();
   }
 
   // 4. Updated Toggle Logic to handle animations
@@ -164,14 +152,21 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
   @override
   void dispose() {
+    // if (OmniController.toggleUI == _toggleWindow) {
+    //   OmniController.toggleUI = null;
+    // }
     _animController.dispose(); // Don't forget to dispose controller
     _textController.dispose();
     _inputScrollController.dispose();
     _focusNode.dispose();
     windowManager.removeListener(this);
-    hotKeyManager.unregisterAll();
-    showOmniBarGlobal = null;
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    OmniController.toggleUI = _toggleWindow;
   }
 
   // (... _onTextChanged and _onSubmitted remain exactly the same ...)

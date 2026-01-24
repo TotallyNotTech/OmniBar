@@ -1,11 +1,18 @@
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:macos_ui/macos_ui.dart';
+import 'package:omni_bar/components/hotkey_recorder.dart';
+import 'package:omni_bar/global_control.dart';
+import 'package:omni_bar/hotkey_provider.dart';
 import 'package:omni_bar/theme_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 
 class SettingsPage extends StatefulWidget {
   final String windowId;
@@ -21,11 +28,34 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
 
   int _pageIndex = 0;
 
+  HotKey _activeHotKey = HotKey(
+    key: PhysicalKeyboardKey.keyK,
+    modifiers: [HotKeyModifier.meta],
+    scope: HotKeyScope.system,
+  );
+
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
     windowManager.setPreventClose(true);
+    _loadSavedHotKey();
+  }
+
+  Future<void> _loadSavedHotKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonStr = prefs.getString('omni_hotkey');
+
+    if (jsonStr != null) {
+      try {
+        final Map<String, dynamic> hotKeyMap = jsonDecode(jsonStr);
+        setState(() {
+          _activeHotKey = HotKey.fromJson(hotKeyMap);
+        });
+      } catch (e) {
+        debugPrint("Failed to load hotkey: $e");
+      }
+    }
   }
 
   @override
@@ -177,7 +207,41 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               subtitle:
                   "You can configure a hotkey to toggle the visibility of OmniBar.",
             ),
-            Placeholder(fallbackHeight: 40),
+            HotKeyRecorderComponent(
+              initialHotKey: _activeHotKey,
+              onStartRecording: () async {
+                await hotKeyManager.unregister(_activeHotKey);
+                debugPrint("Paused current hotkey for recording");
+              },
+
+              onStopRecording: () async {
+                // Do nothing — main window will rebind properly after save
+              },
+
+              onHotKeyRecorded: (newHotKey) async {
+                // Pause old binding locally
+                await hotKeyManager.unregister(_activeHotKey);
+
+                setState(() {
+                  _activeHotKey = newHotKey;
+                });
+
+                // await hotKeyManager.register(
+                //   newHotKey,
+                //   keyDownHandler: (hotKey) {
+                //     OmniController.executeToggle();
+                //   },
+                // );
+
+                // 🔥 Tell provider (this saves + notifies main window)
+                await Provider.of<HotKeyProvider>(
+                  context,
+                  listen: false,
+                ).setHotKey(newHotKey);
+
+                debugPrint("Hotkey updated via provider: $newHotKey");
+              },
+            ),
             Text(
               "Tip: Pressing ESCAPE hides the bar.",
               style: MacosTheme.of(context).typography.caption1.copyWith(
