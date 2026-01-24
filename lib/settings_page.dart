@@ -37,9 +37,9 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
   @override
   void initState() {
     super.initState();
+    _loadSavedHotKey();
     windowManager.addListener(this);
     windowManager.setPreventClose(true);
-    _loadSavedHotKey();
   }
 
   Future<void> _loadSavedHotKey() async {
@@ -208,6 +208,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
                   "You can configure a hotkey to toggle the visibility of OmniBar.",
             ),
             HotKeyRecorderComponent(
+              key: ValueKey(_activeHotKey.identifier),
               initialHotKey: _activeHotKey,
               onStartRecording: () async {
                 await hotKeyManager.unregister(_activeHotKey);
