@@ -6,13 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/components/hotkey_recorder.dart';
-import 'package:omni_bar/global_control.dart';
 import 'package:omni_bar/hotkey_provider.dart';
 import 'package:omni_bar/theme_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:provider/provider.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 
 class SettingsPage extends StatefulWidget {
   final String windowId;
@@ -227,13 +225,6 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
                   _activeHotKey = newHotKey;
                 });
 
-                // await hotKeyManager.register(
-                //   newHotKey,
-                //   keyDownHandler: (hotKey) {
-                //     OmniController.executeToggle();
-                //   },
-                // );
-
                 // 🔥 Tell provider (this saves + notifies main window)
                 await Provider.of<HotKeyProvider>(
                   context,
@@ -243,6 +234,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
                 debugPrint("Hotkey updated via provider: $newHotKey");
               },
             ),
+            const SizedBox(height: 10),
             Text(
               "Tip: Pressing ESCAPE hides the bar.",
               style: MacosTheme.of(context).typography.caption1.copyWith(

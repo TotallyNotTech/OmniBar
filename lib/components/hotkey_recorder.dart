@@ -134,16 +134,6 @@ class _HotKeyRecorderState extends State<HotKeyRecorderComponent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Shortcut",
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-
         Focus(
           focusNode: _focusNode,
           onKeyEvent: (node, event) {
