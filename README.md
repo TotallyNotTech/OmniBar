@@ -71,7 +71,7 @@ Use this checklist to track your progress.
 
 ### Global Hotkeys
 - [x] Add `hotkey_manager`  
-- [ ] Register `Command + K` (or similar) to toggle the window visibility  
+- [x] Register `Command + K` (or similar) to toggle the window visibility  
 - [x] Ensure the app does not appear in the Dock (edit `Info.plist` key `LSUIElement` to `true`)  
 
 ---
@@ -90,8 +90,8 @@ Use this checklist to track your progress.
 - [x] Action: Pressing Enter copies it to clipboard  
 
 ### Tool 2: Color Converter
-- [ ] Logic: Detect Hex codes (e.g., `#FF0000`)  
-- [ ] UI: Show a colored box and the RGB/HSL values  
+- [x] Logic: Detect Hex codes (e.g., `#FF0000`)  
+- [x] UI: Show a colored box and the RGB/HSL values  
 
 ### Tool 3: JSON Pretty Printer
 - [x] Logic: Detect if input is valid JSON string  
@@ -105,7 +105,7 @@ Use this checklist to track your progress.
 
 ### Visual Polish
 - [ ] Add a backdrop blur (Glassmorphism) behind the window  
-- [ ] Add smooth animations when the window appears/disappears  
+- [x] Add smooth animations when the window appears/disappears  
 
 ### Settings Page
 - [ ] Create a small settings view to change the hotkey or default theme  
