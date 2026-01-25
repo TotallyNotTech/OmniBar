@@ -37,7 +37,7 @@ class OmniController {
       // 0 is the ID of your Main OmniBar window
       await _channel.invokeMethod('triggerToggle');
     } catch (e) {
-      debugPrint("Failed to send toggle via multi-window: $e");
+      // debugPrint("Failed to send toggle via multi-window: $e");
       // Fallback: if we are already in the main window, try local execution
       _toggleUI?.call();
     }
