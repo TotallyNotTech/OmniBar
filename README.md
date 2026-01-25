@@ -112,4 +112,13 @@ Use this checklist to track your progress.
 
 ### Build for Release
 - [ ] Update app icon (`flutter_launcher_icons`)  
-- [ ] Run `flutter build macos --release`  
+- [ ] Run `flutter build macos --release`
+
+`flutter run --release` also works.
+We use [create-dmg](https://github.com/create-dmg/create-dmg) to create the installer
+
+Command for create-dmg
+
+````bash
+create-dmg --volname "OmniBar Installer" --window-pos 200 120 --window-size 800 400 --icon-size 100 --app-drop-link 600 185 "OmniBar.dmg" "./build/macos/Build/Products/Release/OmniBar.app"
+````
