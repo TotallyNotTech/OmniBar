@@ -29,8 +29,6 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>LSUIElement</key>
-	<string>CFBundleIconName</string>
-	<key>OmniBarIcon</key>
 	<true/>
 </dict>
 </plist>
