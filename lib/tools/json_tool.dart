@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:omni_bar/omni_tools.dart';
+import 'package:omni_bar/tools/omni_tools.dart';
 import 'package:omni_bar/theme_provider.dart';
 import 'package:provider/provider.dart';
 

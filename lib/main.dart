@@ -46,7 +46,7 @@ Future<void> rebindGlobalHotKey() async {
   await hotKeyManager.register(
     activeKey,
     keyDownHandler: (_) {
-      debugPrint("Hotkey detected.");
+      // debugPrint("Hotkey detected.");
       OmniController.executeToggle(); // This now calls DesktopMultiWindow.invokeMethod(0, ...)
     },
   );

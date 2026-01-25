@@ -32,7 +32,7 @@ class OmniController {
   }
 
   static void executeToggle() async {
-    debugPrint("OmniController: Sending toggle request to Window 0");
+    // debugPrint("OmniController: Sending toggle request to Window 0");
     try {
       // 0 is the ID of your Main OmniBar window
       await _channel.invokeMethod('triggerToggle');

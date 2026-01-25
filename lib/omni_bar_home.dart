@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:omni_bar/global_control.dart';
 import 'package:omni_bar/hotkey_provider.dart';
-import 'package:omni_bar/json_tool.dart';
-import 'package:omni_bar/omni_tools.dart';
+import 'package:omni_bar/tools/json_tool.dart';
+import 'package:omni_bar/tools/omni_tools.dart';
 import 'package:omni_bar/theme_provider.dart';
-import 'package:omni_bar/uuid_tool.dart';
+import 'package:omni_bar/tools/uuid_tool.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
