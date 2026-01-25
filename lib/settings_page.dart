@@ -283,6 +283,21 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
             ),
           ],
         );
+      case 3: // Plugin options
+        // To remember, add a setting for the color picker, to what value it should copy when hitting enter
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader(title: "Plugin Configuration"),
+            const SizedBox(height: 10),
+            Text(
+              "Future settings for plugins will go here.",
+              style: MacosTheme.of(
+                context,
+              ).typography.body.copyWith(color: MacosColors.systemGrayColor),
+            ),
+          ],
+        );
       default:
         return const SizedBox.shrink();
     }
