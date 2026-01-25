@@ -23,6 +23,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> with WindowListener {
   bool _isClosing = false;
   bool _startAtLogin = false;
+  bool _openOnStartup = false;
 
   int _pageIndex = 0;
 
@@ -177,7 +178,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionHeader(
-              "Appearance",
+              title: "Appearance",
               subtitle:
                   "Choose the color theme the OmniBar uses. \nYou can either choose light, dark or to follow the system settings.",
             ),
@@ -201,7 +202,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
             ),
             SizedBox(height: 20),
             _buildSectionHeader(
-              "Trigger Hotkey",
+              title: "Trigger Hotkey",
               subtitle:
                   "You can configure a hotkey to toggle the visibility of OmniBar.",
             ),
@@ -247,12 +248,24 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader("System Startup"),
+            _buildSectionHeader(
+              title: "System Startup",
+              subtitle:
+                  "These settings impact the way and when OmniBar starts.",
+            ),
             _buildMacosSwitchRow(
               title: "Start at Login",
               subtitle: "Launch OmniBar automatically when you sign in.",
               value: _startAtLogin,
               onChanged: (val) => setState(() => _startAtLogin = val),
+            ),
+            const SizedBox(height: 20),
+            _buildMacosSwitchRow(
+              title: "Open OmniBar at Startup",
+              subtitle:
+                  "Open the OmniBar window immediately after you open the program.",
+              value: _openOnStartup,
+              onChanged: (val) => setState(() => _openOnStartup = val),
             ),
           ],
         );
@@ -260,7 +273,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader("Bar Configuration"),
+            _buildSectionHeader(title: "Bar Configuration"),
             const SizedBox(height: 10),
             Text(
               "Future settings for Bar Width, Height, and Position will go here.",
@@ -275,7 +288,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
     }
   }
 
-  Widget _buildSectionHeader(String title, {String? subtitle}) {
+  Widget _buildSectionHeader({required String title, String? subtitle}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
