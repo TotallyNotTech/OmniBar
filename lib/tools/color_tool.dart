@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:omni_bar/theme_provider.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
+import 'package:provider/provider.dart';
 
 class ColorTool extends OmniTool {
   @override
@@ -46,44 +48,69 @@ class ColorTool extends OmniTool {
     final hexStr =
         '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          // 1. Color Preview Box
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 20),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        bool isDark;
+        if (themeProvider.themeMode == ThemeMode.system) {
+          isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+        } else {
+          isDark = themeProvider.themeMode == ThemeMode.dark;
+        }
 
-          // 2. Color Values
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildValueRow("HEX", hexStr),
-                const SizedBox(height: 4),
-                _buildValueRow("RGB", rgbStr),
-                const SizedBox(height: 4),
-                _buildValueRow("HSL", hslStr),
-              ],
-            ),
+        final backgroundColor = isDark
+            ? Colors.black.withOpacity(0.3)
+            : Colors.black.withOpacity(0.7);
+
+        return Container(
+          width: double.infinity,
+          // This outer padding is fine, keep it.
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
-        ],
-      ),
+
+          child: Row(
+            children: [
+              // 1. Color Preview Box
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+
+              // 2. Color Values
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildValueRow("HEX", hexStr),
+                    const SizedBox(height: 4),
+                    _buildValueRow("RGB", rgbStr),
+                    const SizedBox(height: 4),
+                    _buildValueRow("HSL", hslStr),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

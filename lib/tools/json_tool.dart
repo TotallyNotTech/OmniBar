@@ -1,9 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:omni_bar/tools/omni_tools.dart';
 import 'package:omni_bar/theme_provider.dart';
+import 'package:omni_bar/tools/omni_tools.dart';
 import 'package:provider/provider.dart';
 
 class JsonFormatTool implements OmniTool {
@@ -49,12 +48,6 @@ class JsonFormatTool implements OmniTool {
           final backgroundColor = isDark
               ? Colors.black.withOpacity(0.3)
               : Colors.black.withOpacity(0.7);
-          final borderColor = isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.1);
-          final textColor = isDark
-              ? Colors.white.withOpacity(0.6)
-              : Colors.black.withOpacity(0.6);
           final accentColor = isDark
               ? Colors.greenAccent.shade100
               : const Color.fromARGB(255, 52, 232, 103);
