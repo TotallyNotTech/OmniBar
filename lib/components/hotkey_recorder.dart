@@ -234,7 +234,7 @@ class _HotKeyRecorderState extends State<HotKeyRecorderComponent> {
 
     // Add Key (or '?' if recording and missing)
     if (key != null) {
-      keys.add(key.debugName?.replaceAll("Key ", "").toUpperCase() ?? "?");
+      keys.add(key.keyLabel.replaceAll("Key ", "").toUpperCase());
     } else if (isRecording) {
       keys.add("?"); // Placeholder for when you are holding just Cmd
     }
