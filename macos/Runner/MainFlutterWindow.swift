@@ -1,6 +1,7 @@
 import Cocoa
 import FlutterMacOS
 import AppKit
+import LaunchAtLogin
 import desktop_multi_window
 
 class MainFlutterWindow: NSWindow {
@@ -22,13 +23,15 @@ class MainFlutterWindow: NSWindow {
     self.styleMask = [.borderless, .fullSizeContentView]
     flutterViewController.backgroundColor = .clear
 
+    // Register plugins
     RegisterGeneratedPlugins(registry: flutterViewController)
-
+    registerLaunchAtStartup(with: flutterViewController.engine.binaryMessenger)
     registerControlChannel(with: flutterViewController.engine.binaryMessenger)
     registerSyncChannel(with: flutterViewController.engine.binaryMessenger)
 
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
       RegisterGeneratedPlugins(registry: controller)
+      self.registerLaunchAtStartup(with: controller.engine.binaryMessenger)
       self.registerControlChannel(with: controller.engine.binaryMessenger)
       self.registerSyncChannel(with: controller.engine.binaryMessenger)
     }
@@ -42,6 +45,28 @@ class MainFlutterWindow: NSWindow {
     )
 
     super.awakeFromNib()
+  }
+
+  func registerLaunchAtStartup(with messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(
+      name: "launch_at_startup",
+      binaryMessenger: messenger
+    )
+    
+    channel.setMethodCallHandler { (_ call: FlutterMethodCall, result: @escaping FlutterResult) in
+      switch call.method {
+      case "launchAtStartupIsEnabled":
+        result(LaunchAtLogin.isEnabled)
+      case "launchAtStartupSetEnabled":
+        if let arguments = call.arguments as? [String: Any],
+           let value = arguments["setEnabledValue"] as? Bool {
+            LaunchAtLogin.isEnabled = value
+        }
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 
   func registerSyncChannel(with messenger: FlutterBinaryMessenger) {

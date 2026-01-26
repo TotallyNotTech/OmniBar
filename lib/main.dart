@@ -5,12 +5,14 @@ import 'dart:ui';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/global_control.dart';
 import 'package:omni_bar/hotkey_provider.dart';
 import 'package:omni_bar/omni_bar_home.dart';
 import 'package:omni_bar/settings_page.dart';
 import 'package:omni_bar/theme_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_tray/system_tray.dart';
@@ -80,6 +82,15 @@ Future<void> rebindGlobalHotKey() async {
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+  launchAtStartup.setup(
+    appName: packageInfo.appName,
+    appPath: Platform.resolvedExecutable,
+    // Set packageName parameter to support MSIX.
+    // packageName: 'com.example.omni_bar',
+  );
 
   await windowManager.ensureInitialized();
 

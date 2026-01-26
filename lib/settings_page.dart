@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/components/hotkey_recorder.dart';
 import 'package:omni_bar/hotkey_provider.dart';
@@ -22,7 +23,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> with WindowListener {
   bool _isClosing = false;
-  bool _startAtLogin = false;
+  late bool _startAtLogin;
   bool _openOnStartup = false;
 
   int _pageIndex = 0;
@@ -37,8 +38,27 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
   void initState() {
     super.initState();
     _loadSavedHotKey();
+    _loadIsOpenOnStartupEnabled();
     windowManager.addListener(this);
     windowManager.setPreventClose(true);
+  }
+
+  Future<void> _toggleStartAtLogin(bool value) async {
+    if (value) {
+      await launchAtStartup.enable();
+    } else {
+      await launchAtStartup.disable();
+    }
+    bool isEnabled = await launchAtStartup.isEnabled();
+    print(isEnabled);
+    print("is it?");
+    setState(() {
+      _startAtLogin = isEnabled;
+    });
+  }
+
+  Future<void> _loadIsOpenOnStartupEnabled() async {
+    _startAtLogin = await launchAtStartup.isEnabled();
   }
 
   Future<void> _loadSavedHotKey() async {
@@ -257,7 +277,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               title: "Start at Login",
               subtitle: "Launch OmniBar automatically when you sign in.",
               value: _startAtLogin,
-              onChanged: (val) => setState(() => _startAtLogin = val),
+              onChanged: _toggleStartAtLogin,
             ),
             const SizedBox(height: 20),
             _buildMacosSwitchRow(
@@ -265,7 +285,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               subtitle:
                   "Open the OmniBar window immediately after you open the program.",
               value: _openOnStartup,
-              onChanged: (val) => setState(() => _openOnStartup = val),
+              onChanged: (val) => setState(() => _startAtLogin = val),
             ),
           ],
         );
