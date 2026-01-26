@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:omni_bar/theme_provider.dart';
+import 'package:omni_bar/providers/theme_provider.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
 import 'package:provider/provider.dart';
 

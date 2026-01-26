@@ -7,8 +7,9 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/components/hotkey_recorder.dart';
-import 'package:omni_bar/hotkey_provider.dart';
-import 'package:omni_bar/theme_provider.dart';
+import 'package:omni_bar/providers/hotkey_provider.dart';
+import 'package:omni_bar/providers/startup_config_provider.dart';
+import 'package:omni_bar/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
@@ -24,7 +25,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> with WindowListener {
   bool _isClosing = false;
   late bool _startAtLogin;
-  bool _openOnStartup = false;
 
   int _pageIndex = 0;
 
@@ -125,6 +125,7 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final startupConfigProvider = context.watch<StartupConfigProvider>();
     return MacosWindow(
       sidebar: Sidebar(
         minWidth: 200,
@@ -182,7 +183,11 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               return SingleChildScrollView(
                 controller: scrollController,
                 padding: const EdgeInsets.all(20),
-                child: _buildPageContent(_pageIndex, themeProvider),
+                child: _buildPageContent(
+                  _pageIndex,
+                  themeProvider,
+                  startupConfigProvider,
+                ),
               );
             },
           ),
@@ -191,7 +196,11 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
     );
   }
 
-  Widget _buildPageContent(int index, ThemeProvider themeProvider) {
+  Widget _buildPageContent(
+    int index,
+    ThemeProvider themeProvider,
+    StartupConfigProvider startupConfigProvider,
+  ) {
     switch (index) {
       case 0: // General
         return Column(
@@ -284,8 +293,8 @@ class _SettingsPageState extends State<SettingsPage> with WindowListener {
               title: "Open OmniBar at Startup",
               subtitle:
                   "Open the OmniBar window immediately after you open the program.",
-              value: _openOnStartup,
-              onChanged: (val) => setState(() => _startAtLogin = val),
+              value: startupConfigProvider.showOnStartup,
+              onChanged: startupConfigProvider.setConfig,
             ),
           ],
         );

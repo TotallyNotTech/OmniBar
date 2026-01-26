@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
-import 'package:omni_bar/theme_provider.dart';
+import 'package:omni_bar/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 // 1. Import the package
 import 'package:uuid/uuid.dart';

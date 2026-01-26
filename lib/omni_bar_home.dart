@@ -3,11 +3,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:omni_bar/global_control.dart';
-import 'package:omni_bar/hotkey_provider.dart';
+import 'package:omni_bar/providers/hotkey_provider.dart';
+import 'package:omni_bar/providers/startup_config_provider.dart';
 import 'package:omni_bar/tools/color_tool.dart';
 import 'package:omni_bar/tools/json_tool.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
-import 'package:omni_bar/theme_provider.dart';
+import 'package:omni_bar/providers/theme_provider.dart';
 import 'package:omni_bar/tools/uuid_tool.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -34,6 +35,8 @@ class _OmniBarHomeState extends State<OmniBarHome>
   final TextEditingController _textController = TextEditingController();
   final ScrollController _inputScrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+
+  StartupConfigProvider startupConfigProvider = StartupConfigProvider();
 
   @override
   void initState() {

@@ -8,10 +8,11 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/global_control.dart';
-import 'package:omni_bar/hotkey_provider.dart';
+import 'package:omni_bar/providers/hotkey_provider.dart';
 import 'package:omni_bar/omni_bar_home.dart';
+import 'package:omni_bar/providers/startup_config_provider.dart';
 import 'package:omni_bar/settings_page.dart';
-import 'package:omni_bar/theme_provider.dart';
+import 'package:omni_bar/providers/theme_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -119,6 +120,8 @@ void main(List<String> args) async {
 Future<void> _startOmniBarApp() async {
   await windowManager.ensureInitialized();
 
+  StartupConfigProvider startupConfigProvider = StartupConfigProvider();
+
   const Size windowSize = Size(800, 600);
   const double topOffset = 350.0;
 
@@ -135,10 +138,17 @@ Future<void> _startOmniBarApp() async {
 
     // Use current position to move the window down
     await windowManager.setPosition(Offset(currentPos.dx, topOffset));
-
     await windowManager.show();
     await windowManager.focus();
   });
+
+  // Hide the window immediately after startup
+  // This is to give the illusion of no window on startup
+  if (!startupConfigProvider.showOnStartup) {
+    Future.delayed(const Duration(milliseconds: 50), () {
+      OmniController.executeToggle();
+    });
+  }
 
   await initSystemTray();
 
@@ -147,6 +157,7 @@ Future<void> _startOmniBarApp() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => HotKeyProvider()),
+        ChangeNotifierProvider(create: (_) => StartupConfigProvider()),
       ],
       child: const OmniBarApp(),
     ),
@@ -180,6 +191,7 @@ Future<void> _startSettingsWindow(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => HotKeyProvider()),
+        ChangeNotifierProvider(create: (_) => StartupConfigProvider()),
       ],
       child: SettingsWindowEntry(windowId: windowId, args: args),
     ),
