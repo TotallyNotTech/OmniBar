@@ -336,41 +336,40 @@ class _OmniBarHomeState extends State<OmniBarHome>
   }
 
   Widget _buildSearchBar(Color textColor) {
-    return Scrollbar(
-      controller: _inputScrollController,
-      thumbVisibility: true,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 130),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Focus(
-            onKeyEvent: (FocusNode node, KeyEvent event) {
-              if (event is KeyDownEvent &&
-                  event.logicalKey == LogicalKeyboardKey.enter) {
-                if (!HardwareKeyboard.instance.isShiftPressed) {
-                  _onSubmitted(_textController.text);
-                  return KeyEventResult.handled;
-                }
+    // CLEAN FIX: Removed manual Scrollbar wrapper and ScrollConfiguration.
+    // The TextField handles its own scrollbar naturally now.
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 130),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Focus(
+          onKeyEvent: (FocusNode node, KeyEvent event) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.enter) {
+              if (!HardwareKeyboard.instance.isShiftPressed) {
+                _onSubmitted(_textController.text);
+                return KeyEventResult.handled;
               }
-              return KeyEventResult.ignored;
-            },
-            child: TextField(
-              controller: _textController,
-              scrollController: _inputScrollController,
-              focusNode: _focusNode,
-              style: TextStyle(color: textColor, fontSize: 24),
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.center,
-              keyboardType: TextInputType.multiline,
-              scrollPhysics: const ClampingScrollPhysics(),
-              decoration: InputDecoration(
-                hintText: "Enter a command...",
-                hintStyle: TextStyle(color: textColor),
-                border: InputBorder.none,
-                prefixIcon: Icon(Icons.search, color: textColor, size: 28),
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
+            }
+            return KeyEventResult.ignored;
+          },
+          child: TextField(
+            controller: _textController,
+            // Keeping this linked ensures TextField uses our controller
+            scrollController: _inputScrollController,
+            focusNode: _focusNode,
+            style: TextStyle(color: textColor, fontSize: 24),
+            maxLines: null,
+            textAlignVertical: TextAlignVertical.center,
+            keyboardType: TextInputType.multiline,
+            scrollPhysics: const ClampingScrollPhysics(),
+            decoration: InputDecoration(
+              hintText: "Enter a command...",
+              hintStyle: TextStyle(color: textColor),
+              border: InputBorder.none,
+              prefixIcon: Icon(Icons.search, color: textColor, size: 28),
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
             ),
           ),
         ),
