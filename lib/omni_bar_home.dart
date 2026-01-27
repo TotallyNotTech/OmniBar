@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:omni_bar/global_control.dart';
 import 'package:omni_bar/providers/hotkey_provider.dart';
 import 'package:omni_bar/providers/startup_config_provider.dart';
+import 'package:omni_bar/tools/base64_tool.dart';
 import 'package:omni_bar/tools/color_tool.dart';
 import 'package:omni_bar/tools/json_tool.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
@@ -58,7 +59,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
           ),
         );
 
-    _tools = [JsonFormatTool(), UuidTool(), ColorTool()];
+    _tools = [JsonFormatTool(), UuidTool(), ColorTool(), Base64Tool()];
     windowManager.addListener(this);
     _textController.addListener(_onTextChanged);
 
