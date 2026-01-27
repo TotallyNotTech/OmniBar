@@ -68,6 +68,7 @@ class JsonFormatTool implements OmniTool {
               children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(
+                    minWidth: double.infinity,
                     maxHeight:
                         200, // Adjust this value if you want it taller/shorter
                   ),
