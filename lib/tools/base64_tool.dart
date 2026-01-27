@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:omni_bar/providers/theme_provider.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
+import 'package:provider/provider.dart';
 
 class Base64Tool extends OmniTool {
   @override
@@ -12,6 +14,8 @@ class Base64Tool extends OmniTool {
     if (trimmed.length < 6) return false;
     return trimmed.startsWith('b64e ') || trimmed.startsWith('b64d ');
   }
+
+  Color backgroundColor = Colors.black.withOpacity(0.7);
 
   String _normalize(String input) {
     // 1. JWTs use Base64URL: convert back to standard Base64 characters
@@ -55,8 +59,9 @@ class Base64Tool extends OmniTool {
                   : (i == 1 ? "Payload" : "Signature");
               decodedParts.add("[$partName]\n$decoded");
             } catch (e) {
-              if (parts[i].isNotEmpty)
+              if (parts[i].isNotEmpty) {
                 decodedParts.add("[Part ${i + 1} Binary/Signature]");
+              }
             }
           }
           result = decodedParts.join('\n\n');
@@ -76,9 +81,13 @@ class Base64Tool extends OmniTool {
         }
       }
 
-      content = Padding(
-        key: const ValueKey('b64_content'),
-        padding: const EdgeInsets.all(20.0),
+      content = Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,17 +103,14 @@ class Base64Tool extends OmniTool {
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
+              // padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
               child: SelectableText(
                 result,
                 style: TextStyle(
                   color: isError ? Colors.orangeAccent : Colors.white,
                   fontFamily: 'Menlo',
-                  fontSize: 13,
+                  fontSize: 14,
                   height: 1.5,
                 ),
               ),
@@ -124,27 +130,42 @@ class Base64Tool extends OmniTool {
       content = const SizedBox.shrink(key: ValueKey('b64_empty'));
     }
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
-      switchInCurve: Curves.easeOutBack,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return SizeTransition(
-          sizeFactor: animation,
-          axisAlignment: -1.0,
-          child: FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.0, -0.1),
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            ),
-          ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        bool isDark;
+        if (themeProvider.themeMode == ThemeMode.system) {
+          isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+        } else {
+          isDark = themeProvider.themeMode == ThemeMode.dark;
+        }
+
+        backgroundColor = isDark
+            ? Colors.black.withOpacity(0.3)
+            : Colors.black.withOpacity(0.7);
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return SizeTransition(
+              sizeFactor: animation,
+              axisAlignment: -1.0,
+              child: FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.0, -0.2),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              ),
+            );
+          },
+          child: content,
         );
       },
-      child: content,
     );
   }
 
@@ -170,7 +191,7 @@ class Base64Tool extends OmniTool {
                   return "";
                 }
               })
-              .join('\n\n');
+              .join('\n');
         }
         return utf8.decode(base64.decode(_normalize(textToProcess)));
       }
