@@ -11,8 +11,8 @@ class Base64Tool extends OmniTool {
   @override
   bool canHandle(String input) {
     final trimmed = input.trim();
-    if (trimmed.length < 6) return false;
-    return trimmed.startsWith('b64e ') || trimmed.startsWith('b64d ');
+    // if (trimmed.length < 6) return false;
+    return trimmed.startsWith('b64e') || trimmed.startsWith('b64d');
   }
 
   Color backgroundColor = Colors.black.withOpacity(0.7);
@@ -36,99 +36,116 @@ class Base64Tool extends OmniTool {
     String result = "";
     bool isError = false;
 
-    final textToProcess = trimmed.substring(5).trim();
+    final textToProcess = trimmed.substring(4).trim();
 
     Widget content;
-    try {
-      if (trimmed.startsWith('b64e ')) {
-        label = "Base64 Encoded";
+    // try {
+    if (trimmed.startsWith('b64e')) {
+      label = "Base64 Encoded";
+      try {
         result = base64.encode(utf8.encode(textToProcess));
-      } else if (trimmed.startsWith('b64d ')) {
-        // --- JWT HANDLING ---
-        if (textToProcess.contains('.')) {
-          label = "JWT Decoded";
-          final parts = textToProcess.split('.');
-          List<String> decodedParts = [];
+      } catch (e) {
+        isError = true;
+      }
+    } else if (trimmed.startsWith('b64d')) {
+      // --- JWT HANDLING ---
+      if (textToProcess.contains('.')) {
+        label = "JWT Decoded";
+        final parts = textToProcess.split('.');
+        List<String> decodedParts = [];
 
-          for (int i = 0; i < parts.length; i++) {
-            try {
-              final normalized = _normalize(parts[i]);
-              final decoded = utf8.decode(base64.decode(normalized));
-              final partName = i == 0
-                  ? "Header"
-                  : (i == 1 ? "Payload" : "Signature");
-              decodedParts.add("[$partName]\n$decoded");
-            } catch (e) {
-              if (parts[i].isNotEmpty) {
-                decodedParts.add("[Part ${i + 1} Binary/Signature]");
-              }
+        for (int i = 0; i < parts.length; i++) {
+          try {
+            final normalized = _normalize(parts[i]);
+            final decoded = utf8.decode(base64.decode(normalized));
+            final partName = i == 0
+                ? "Header"
+                : (i == 1 ? "Payload" : "Signature");
+            decodedParts.add("[$partName]\n$decoded");
+          } catch (e) {
+            if (parts[i].isNotEmpty) {
+              decodedParts.add("[Part ${i + 1} Binary/Signature]");
             }
           }
-          result = decodedParts.join('\n\n');
         }
-        // --- STANDARD BASE64 ---
-        else {
-          label = "Base64 Decoded (UTF-8)";
-          final normalized = _normalize(textToProcess);
+        result = decodedParts.join('\n\n');
+      }
+      // --- STANDARD BASE64 ---
+      else {
+        label = "Base64 Decoded (UTF-8)";
+        final normalized = _normalize(textToProcess);
+        print(normalized + "hadsf");
+        try {
+          result = utf8.decode(base64.decode(normalized));
+        } catch (e) {
+          label = "Base64 Raw Bytes";
           try {
-            result = utf8.decode(base64.decode(normalized));
-          } catch (e) {
-            label = "Base64 Raw Bytes";
             result =
                 "Binary data detected (${base64.decode(normalized).length} bytes)";
-            isError = true;
+          } catch (e) {
+            result = "";
           }
-        }
-      }
 
-      content = Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label.toUpperCase(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-                fontSize: 11,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              // padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-              child: SelectableText(
-                result,
-                style: TextStyle(
-                  color: isError ? Colors.orangeAccent : Colors.white,
-                  fontFamily: 'Menlo',
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Press Enter to copy result",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.3),
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      content = const SizedBox.shrink(key: ValueKey('b64_empty'));
+          isError = true;
+        }
+        print(result + "result");
+      }
     }
+
+    content = Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+              fontSize: 11,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+            child: SelectableText(
+              result,
+              strutStyle: StrutStyle(
+                fontFamily: 'Menlo',
+                fontSize: 14,
+                height: 1.5,
+                forceStrutHeight: true,
+              ),
+              style: TextStyle(
+                color: isError ? Colors.orangeAccent : Colors.white,
+                fontFamily: 'Menlo',
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Press Enter to copy result",
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.3),
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+    // } catch (e) {
+    //   print(" its being catched");
+    //   content = const SizedBox.shrink(key: ValueKey('b64_empty'));
+    // }
 
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
