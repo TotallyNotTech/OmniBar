@@ -4,6 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:omni_bar/global_control.dart';
+import 'package:omni_bar/omniBar/search_bar.dart';
+import 'package:omni_bar/omniBar/search_results.dart';
 import 'package:omni_bar/providers/hotkey_provider.dart';
 import 'package:omni_bar/providers/startup_config_provider.dart';
 import 'package:omni_bar/tools/base64_tool.dart';
@@ -265,59 +267,12 @@ class _OmniBarHomeState extends State<OmniBarHome>
           Divider(height: 1, color: Colors.white.withOpacity(0.1)),
           // 6. Build the Suggestions List
           ..._filteredSuggestions.mapIndexed((index, suggestion) {
-            return Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _acceptSuggestion(suggestion),
-                hoverColor: isDark
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.black.withOpacity(0.05),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        suggestion.icon,
-                        color: textColor.withOpacity(0.5),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        // TODO: fix this here broski
-                        suggestion.trigger.first,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          fontFamily:
-                              'Menlo', // Monospace looks cool for commands
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "-  ${suggestion.description}",
-                        style: TextStyle(
-                          color: textColor.withOpacity(0.5),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (index == 0)
-                        Text(
-                          "TAB to complete", // Visual hint
-                          style: TextStyle(
-                            color: textColor.withOpacity(0.5),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+            return SearchResultsWidget(
+              isDark: isDark,
+              itemIndex: index,
+              searchSuggestion: suggestion,
+              acceptSuggestion: _acceptSuggestion,
+              textColor: textColor,
             );
           }),
         ],
@@ -371,7 +326,15 @@ class _OmniBarHomeState extends State<OmniBarHome>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildSearchBar(textColor),
+                          SearchBarWidget(
+                            textController: _textController,
+                            textColor: textColor,
+                            inputScrollController: _inputScrollController,
+                            filteredSuggestions: _filteredSuggestions,
+                            acceptSuggestion: _acceptSuggestion,
+                            onSubmitted: _onSubmitted,
+                            focusNode: _focusNode,
+                          ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),
                             switchInCurve: Curves.easeOutBack,
@@ -404,58 +367,6 @@ class _OmniBarHomeState extends State<OmniBarHome>
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(Color textColor) {
-    // CLEAN FIX: Removed manual Scrollbar wrapper and ScrollConfiguration.
-    // The TextField handles its own scrollbar naturally now.
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 130),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Focus(
-          onKeyEvent: (FocusNode node, KeyEvent event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.tab) {
-              if (_textController.text.isEmpty ||
-                  _filteredSuggestions.isEmpty) {
-                return KeyEventResult.handled;
-              } else {
-                _acceptSuggestion(_filteredSuggestions.first);
-                return KeyEventResult.handled;
-              }
-            }
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.enter) {
-              if (!HardwareKeyboard.instance.isShiftPressed) {
-                _onSubmitted(_textController.text);
-                return KeyEventResult.handled;
-              }
-            }
-            return KeyEventResult.ignored;
-          },
-          child: TextField(
-            controller: _textController,
-            // Keeping this linked ensures TextField uses our controller
-            scrollController: _inputScrollController,
-            focusNode: _focusNode,
-            style: TextStyle(color: textColor, fontSize: 24),
-            maxLines: null,
-            textAlignVertical: TextAlignVertical.center,
-            keyboardType: TextInputType.multiline,
-            scrollPhysics: const ClampingScrollPhysics(),
-            decoration: InputDecoration(
-              hintText: "Start typing command...",
-              hintStyle: TextStyle(color: textColor),
-              border: InputBorder.none,
-              prefixIcon: Icon(Icons.search, color: textColor, size: 28),
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
             ),
           ),
         ),
