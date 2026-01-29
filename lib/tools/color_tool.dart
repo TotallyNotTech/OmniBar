@@ -15,6 +15,13 @@ class ColorTool extends OmniTool {
     return _hexRegex.hasMatch(input.trim());
   }
 
+  @override
+  get wakeCommands => SearchSuggestion(
+    ['color'],
+    'Color Converter (Hex/RGB)',
+    Icons.color_lens,
+  );
+
   Color? _parseColor(String input) {
     String hex = input.trim().replaceAll('#', '');
     if (hex.length == 3) {

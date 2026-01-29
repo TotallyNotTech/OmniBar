@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 
+class SearchSuggestion {
+  final List<String> trigger; // e.g. "b64e"
+  final String description; // e.g. "Base64 Encode"
+  final IconData icon; // Visual cue
+
+  SearchSuggestion(this.trigger, this.description, this.icon);
+}
+
 /// The blueprint that every utility blade must follow.
 abstract class OmniTool {
   /// The name of the tool (for future list view)
@@ -12,6 +20,8 @@ abstract class OmniTool {
   /// The UI widget to display below the search bar when active.
   Widget buildDisplay(BuildContext context, String input);
   String? getCopyableData(String input) => null;
+
+  SearchSuggestion get wakeCommands;
 
   void resetState() {}
 }

@@ -10,6 +10,10 @@ class JsonFormatTool implements OmniTool {
   String get name => "JSON Pretty Printer";
 
   @override
+  get wakeCommands =>
+      SearchSuggestion(['json'], 'Format & Validate JSON', Icons.data_object);
+
+  @override
   bool canHandle(String input) {
     input = input.trim();
     // Fast checks: Must start/end with JSON-like structure

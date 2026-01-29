@@ -15,6 +15,14 @@ class Base64Tool extends OmniTool {
     return trimmed.startsWith('b64e') || trimmed.startsWith('b64d');
   }
 
+  // TODO: split encrypt and decrypt commands
+  @override
+  get wakeCommands => SearchSuggestion(
+    ['b64e', 'b64d'],
+    'Base64 Encryption/Decryption',
+    Icons.lock_outline,
+  );
+
   Color backgroundColor = Colors.black.withOpacity(0.7);
 
   String _normalize(String input) {
