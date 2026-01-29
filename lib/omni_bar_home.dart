@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:omni_bar/global_control.dart';
@@ -195,7 +196,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
     if (foundTool == null && text.trim().isNotEmpty) {
       final lowerText = text.trim().toLowerCase();
       newSuggestions = _allSuggestions.where((s) {
-        return s.trigger.any((t) => t.toLowerCase().startsWith(lowerText));
+        return s.trigger.any((t) => t.toLowerCase().contains(lowerText));
       }).toList();
     }
 
@@ -263,7 +264,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
         children: [
           Divider(height: 1, color: Colors.white.withOpacity(0.1)),
           // 6. Build the Suggestions List
-          ..._filteredSuggestions.map((suggestion) {
+          ..._filteredSuggestions.mapIndexed((index, suggestion) {
             return Material(
               color: Colors.transparent,
               child: InkWell(
@@ -304,22 +305,21 @@ class _OmniBarHomeState extends State<OmniBarHome>
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        "TAB", // Visual hint
-                        style: TextStyle(
-                          color: textColor.withOpacity(0.2),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                      if (index == 0)
+                        Text(
+                          "TAB to complete", // Visual hint
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.5),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
               ),
             );
           }),
-          // Add a tiny bit of padding at bottom
-          const SizedBox(height: 8),
         ],
       );
     } else {
@@ -420,6 +420,16 @@ class _OmniBarHomeState extends State<OmniBarHome>
         padding: const EdgeInsets.all(16.0),
         child: Focus(
           onKeyEvent: (FocusNode node, KeyEvent event) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.tab) {
+              if (_textController.text.isEmpty ||
+                  _filteredSuggestions.isEmpty) {
+                return KeyEventResult.handled;
+              } else {
+                _acceptSuggestion(_filteredSuggestions.first);
+                return KeyEventResult.handled;
+              }
+            }
             if (event is KeyDownEvent &&
                 event.logicalKey == LogicalKeyboardKey.enter) {
               if (!HardwareKeyboard.instance.isShiftPressed) {
