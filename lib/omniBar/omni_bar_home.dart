@@ -44,6 +44,8 @@ class _OmniBarHomeState extends State<OmniBarHome>
   OmniTool? _lockedTool;
   String? _lockedTrigger;
 
+  int _selectedIndex = 0;
+
   final TextEditingController _textController = TextEditingController();
   final ScrollController _inputScrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
@@ -167,6 +169,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
         _lockedTool = null;
         _lockedTrigger = null;
         _filteredSuggestions = [];
+        _selectedIndex = 0;
       });
     }
   }
@@ -196,6 +199,21 @@ class _OmniBarHomeState extends State<OmniBarHome>
   void didChangeDependencies() {
     super.didChangeDependencies();
     OmniController.toggleUI = _toggleWindow;
+  }
+
+  void _onNavigate(int direction) {
+    if (_filteredSuggestions.isEmpty) return;
+
+    setState(() {
+      // Calculate new index and wrap around
+      int newIndex = _selectedIndex + direction;
+      if (newIndex < 0) {
+        newIndex = _filteredSuggestions.length - 1;
+      } else if (newIndex >= _filteredSuggestions.length) {
+        newIndex = 0;
+      }
+      _selectedIndex = newIndex;
+    });
   }
 
   void _onTextChanged() {
@@ -231,6 +249,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
         // Ensure no tool is showing while searching/filtering
         _activeToolWidget = null;
         _activeTool = null;
+        _selectedIndex = 0;
       });
     }
   }
@@ -275,6 +294,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
       _activeToolWidget = null;
       _textController.clear();
       _filteredSuggestions = [];
+      _selectedIndex = 0;
     });
   }
 
@@ -317,9 +337,11 @@ class _OmniBarHomeState extends State<OmniBarHome>
           Divider(height: 1, color: Colors.white.withOpacity(0.1)),
           // 6. Build the Suggestions List
           ..._filteredSuggestions.mapIndexed((index, suggestion) {
+            final isSelected = index == _selectedIndex;
             return SearchResultsWidget(
               isDark: isDark,
               itemIndex: index,
+              isSelected: isSelected,
               searchSuggestion: suggestion,
               acceptSuggestion: _acceptSuggestion,
               textColor: textColor,
@@ -392,6 +414,8 @@ class _OmniBarHomeState extends State<OmniBarHome>
                             onUnlock: _unlock,
                             canEnterText:
                                 (_activeTool ?? _lockedTool)?.canEnterText,
+                            selectedIndex: _selectedIndex,
+                            onNavigate: _onNavigate,
                           ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),

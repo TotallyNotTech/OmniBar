@@ -15,6 +15,8 @@ class SearchBarWidget extends StatefulWidget {
   final String? triggerHelperText;
   final bool? canEnterText;
   final VoidCallback onUnlock;
+  final int selectedIndex;
+  final Function(int) onNavigate;
 
   const SearchBarWidget({
     super.key,
@@ -30,6 +32,8 @@ class SearchBarWidget extends StatefulWidget {
     required this.triggerHelperText,
     required this.canEnterText,
     required this.onUnlock,
+    required this.selectedIndex,
+    required this.onNavigate,
   });
 
   @override
@@ -72,26 +76,42 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               }
             }
 
-            // 2. TAB COMPLETION
+            // 2. ARROW NAVIGATION
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                widget.onNavigate(1); // Move Down
+                return KeyEventResult.handled;
+              }
+              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                widget.onNavigate(-1); // Move Up
+                return KeyEventResult.handled;
+              }
+            }
+
+            // 3. TAB COMPLETION
             if (event is KeyDownEvent &&
                 event.logicalKey == LogicalKeyboardKey.tab) {
               if (widget.textController.text.isEmpty ||
                   widget.filteredSuggestions.isEmpty) {
                 return KeyEventResult.handled;
               } else {
-                widget.acceptSuggestion(widget.filteredSuggestions.first);
+                widget.acceptSuggestion(
+                  widget.filteredSuggestions[widget.selectedIndex],
+                );
                 return KeyEventResult.handled;
               }
             }
 
-            // 3. SUBMIT
+            // 4. SUBMIT
             if (event is KeyDownEvent &&
                 event.logicalKey == LogicalKeyboardKey.enter) {
               if (!HardwareKeyboard.instance.isShiftPressed) {
                 // If searching and hit enter on top result -> select it
                 if (widget.lockedTrigger == null &&
                     widget.filteredSuggestions.isNotEmpty) {
-                  widget.acceptSuggestion(widget.filteredSuggestions.first);
+                  widget.acceptSuggestion(
+                    widget.filteredSuggestions[widget.selectedIndex],
+                  );
                   return KeyEventResult.handled;
                 }
 
@@ -100,6 +120,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               }
             }
 
+            // 5. DISABLE TEXT INPUT WHEN LOCKED
             if (event is KeyDownEvent && !textFieldEnabled) {
               return KeyEventResult.handled;
             }

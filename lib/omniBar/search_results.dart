@@ -5,6 +5,7 @@ class SearchResultsWidget extends StatefulWidget {
   final bool isDark;
   final Color textColor;
   final int itemIndex;
+  final bool isSelected;
   final void Function(SearchSuggestion) acceptSuggestion;
   final SearchSuggestion searchSuggestion;
   const SearchResultsWidget({
@@ -12,6 +13,7 @@ class SearchResultsWidget extends StatefulWidget {
     required this.isDark,
     required this.textColor,
     required this.itemIndex,
+    required this.isSelected,
     required this.acceptSuggestion,
     required this.searchSuggestion,
   });
@@ -23,8 +25,11 @@ class SearchResultsWidget extends StatefulWidget {
 class _SearchResultsWidgetState extends State<SearchResultsWidget> {
   @override
   Widget build(BuildContext context) {
+    final highlightColor = widget.isDark
+        ? Colors.white.withOpacity(0.1)
+        : Colors.black.withOpacity(0.05);
     return Material(
-      color: Colors.transparent,
+      color: widget.isSelected ? highlightColor : Colors.transparent,
       child: InkWell(
         onTap: () => widget.acceptSuggestion(widget.searchSuggestion),
         hoverColor: widget.isDark
@@ -59,13 +64,14 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
                 ),
               ),
               const Spacer(),
-              if (widget.itemIndex == 0)
+              if (widget.isSelected)
                 Text(
-                  "TAB to complete", // Visual hint
+                  "TAB / ENTER",
                   style: TextStyle(
-                    color: widget.textColor.withOpacity(0.5),
+                    color: widget.textColor.withOpacity(0.3),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
                   ),
                 ),
             ],
