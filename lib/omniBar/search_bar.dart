@@ -10,6 +10,9 @@ class SearchBarWidget extends StatefulWidget {
   final void Function(SearchSuggestion) acceptSuggestion;
   final Future<void> Function(String) onSubmitted;
   final FocusNode focusNode;
+  final IconData? toolIcon;
+  final String? lockedTrigger;
+  final VoidCallback onUnlock;
 
   const SearchBarWidget({
     super.key,
@@ -20,6 +23,9 @@ class SearchBarWidget extends StatefulWidget {
     required this.acceptSuggestion,
     required this.onSubmitted,
     required this.focusNode,
+    required this.toolIcon,
+    required this.lockedTrigger,
+    required this.onUnlock,
   });
 
   @override
@@ -29,12 +35,24 @@ class SearchBarWidget extends StatefulWidget {
 class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   Widget build(BuildContext context) {
+    print("toolicon ${widget.toolIcon}");
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 130),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Focus(
           onKeyEvent: (FocusNode node, KeyEvent event) {
+            // 1. UNLOCK LOGIC
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.backspace) {
+              if (widget.lockedTrigger != null &&
+                  widget.textController.text.isEmpty) {
+                widget.onUnlock(); // Go back to search mode
+                return KeyEventResult.handled;
+              }
+            }
+
+            // 2. TAB COMPLETION
             if (event is KeyDownEvent &&
                 event.logicalKey == LogicalKeyboardKey.tab) {
               if (widget.textController.text.isEmpty ||
@@ -45,9 +63,18 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                 return KeyEventResult.handled;
               }
             }
+
+            // 3. SUBMIT
             if (event is KeyDownEvent &&
                 event.logicalKey == LogicalKeyboardKey.enter) {
               if (!HardwareKeyboard.instance.isShiftPressed) {
+                // If searching and hit enter on top result -> select it
+                if (widget.lockedTrigger == null &&
+                    widget.filteredSuggestions.isNotEmpty) {
+                  widget.acceptSuggestion(widget.filteredSuggestions.first);
+                  return KeyEventResult.handled;
+                }
+
                 widget.onSubmitted(widget.textController.text);
                 return KeyEventResult.handled;
               }
@@ -65,10 +92,85 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             keyboardType: TextInputType.multiline,
             scrollPhysics: const ClampingScrollPhysics(),
             decoration: InputDecoration(
-              hintText: "Start typing command...",
+              hintText: widget.lockedTrigger != null
+                  ? "Paste payload..."
+                  : "Start typing command...",
               hintStyle: TextStyle(color: widget.textColor),
               border: InputBorder.none,
-              prefixIcon: Icon(Icons.search, color: widget.textColor, size: 28),
+              prefixIcon: widget.lockedTrigger != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 8, right: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            widget.toolIcon ?? Icons.extension,
+                            color: widget.textColor,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: widget.textColor.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: widget.textColor.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Text(
+                              widget.lockedTrigger!.toUpperCase(),
+                              style: TextStyle(
+                                color: widget.textColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Menlo',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Icon(Icons.search, color: widget.textColor, size: 28),
+
+              // prefix: widget.lockedTrigger != null
+              //     ? Padding(
+              //         padding: const EdgeInsets.only(right: 10),
+              //         child: Center(
+              //           child: Container(
+              //             padding: const EdgeInsets.symmetric(
+              //               horizontal: 8,
+              //               vertical: 4, // slightly more vertical padding
+              //             ),
+              //             decoration: BoxDecoration(
+              //               color: widget.textColor.withOpacity(0.05),
+              //               borderRadius: BorderRadius.circular(6),
+              //               border: Border.all(
+              //                 color: widget.textColor.withOpacity(0.2),
+              //               ),
+              //             ),
+              //             child: Text(
+              //               widget.lockedTrigger!.toUpperCase(),
+              //               style: TextStyle(
+              //                 color: widget.textColor,
+              //                 fontSize: 13,
+              //                 fontWeight: FontWeight.bold,
+              //                 fontFamily: 'Menlo',
+              //               ),
+              //             ),
+              //           ),
+              //         ),
+              //       )
+              //     : null,
+              // If not locked, no prefix widget exists
+              // prefixIconConstraints: const BoxConstraints(
+              //   minWidth: 0,
+              //   minHeight: 0,
+              // ),
               isDense: true,
               contentPadding: EdgeInsets.zero,
             ),

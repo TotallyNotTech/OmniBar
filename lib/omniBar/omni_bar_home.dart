@@ -34,8 +34,14 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
   late final List<OmniTool> _tools;
   late final List<SearchSuggestion> _allSuggestions;
+
+  // Active states
   OmniTool? _activeTool;
   Widget? _activeToolWidget;
+
+  // LOCKED STATE VARIABLES
+  OmniTool? _lockedTool;
+  String? _lockedTrigger;
 
   final TextEditingController _textController = TextEditingController();
   final ScrollController _inputScrollController = ScrollController();
@@ -67,7 +73,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
     _tools = [JsonFormatTool(), UuidTool(), ColorTool(), Base64Tool()];
     _allSuggestions = _tools.map((e) => e.wakeCommands).toList();
-    print('allSuggestions $_allSuggestions');
+
     windowManager.addListener(this);
     _textController.addListener(_onTextChanged);
 
@@ -151,6 +157,9 @@ class _OmniBarHomeState extends State<OmniBarHome>
       setState(() {
         _activeTool = null;
         _activeToolWidget = null;
+        _lockedTool = null;
+        _lockedTrigger = null;
+        _filteredSuggestions = [];
       });
     }
   }
@@ -184,30 +193,37 @@ class _OmniBarHomeState extends State<OmniBarHome>
 
   void _onTextChanged() {
     final text = _textController.text;
-    Widget? foundWidget;
-    OmniTool? foundTool;
-    for (final tool in _tools) {
-      if (tool.canHandle(text)) {
-        foundWidget = tool.buildDisplay(context, text);
-        foundTool = tool;
-        break;
+
+    // MODE A: LOCKED (Tool is active, passing payload)
+    if (_lockedTool != null) {
+      // Pass the raw text directly to the tool. No searching.
+      final widget = _lockedTool!.buildDisplay(context, text);
+
+      if (_activeToolWidget != widget) {
+        setState(() {
+          _activeToolWidget = widget;
+        });
       }
+      return;
     }
 
+    // MODE B: SEARCH (Filtering suggestions)
+    // We do NOT check tool.canHandle here anymore.
+
     List<SearchSuggestion> newSuggestions = [];
-    if (foundTool == null && text.trim().isNotEmpty) {
+    if (text.trim().isNotEmpty) {
       final lowerText = text.trim().toLowerCase();
       newSuggestions = _allSuggestions.where((s) {
         return s.trigger.any((t) => t.toLowerCase().contains(lowerText));
       }).toList();
     }
 
-    if (_activeToolWidget != foundWidget ||
-        _filteredSuggestions != newSuggestions) {
+    if (_filteredSuggestions != newSuggestions) {
       setState(() {
-        _activeToolWidget = foundWidget;
-        _activeTool = foundTool;
         _filteredSuggestions = newSuggestions;
+        // Ensure no tool is showing while searching/filtering
+        _activeToolWidget = null;
+        _activeTool = null;
       });
     }
   }
@@ -221,19 +237,46 @@ class _OmniBarHomeState extends State<OmniBarHome>
   }
 
   void _acceptSuggestion(SearchSuggestion suggestion) {
-    // Determine if the command needs a space (most do)
-    String newText = "${suggestion.trigger} ";
-
-    _textController.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
+    final tool = _tools.firstWhere(
+      (t) => t.wakeCommands.description == suggestion.description,
     );
+    final trigger = suggestion.trigger.first;
+
+    setState(() {
+      _lockedTool = tool;
+      _lockedTrigger = trigger;
+      _activeTool = tool; // Keep this for copy/paste logic
+
+      // Clear text so user can type payload
+      _textController.clear();
+      // Hide suggestions
+      _filteredSuggestions = [];
+
+      // Initialize tool with empty input
+      _activeToolWidget = tool.buildDisplay(context, "");
+    });
+
+    // Ensure focus stays on input
+    _focusNode.requestFocus();
+  }
+
+  void _unlock() {
+    setState(() {
+      _lockedTool = null;
+      _lockedTrigger = null;
+      _activeTool = null;
+      _activeToolWidget = null;
+      _textController.clear();
+      _filteredSuggestions = [];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     print(_allSuggestions.map((e) => e.description));
+
+    print("activeactive $_activeTool");
 
     bool isDark;
     if (themeProvider.themeMode == ThemeMode.system) {
@@ -334,6 +377,10 @@ class _OmniBarHomeState extends State<OmniBarHome>
                             acceptSuggestion: _acceptSuggestion,
                             onSubmitted: _onSubmitted,
                             focusNode: _focusNode,
+                            toolIcon:
+                                (_activeTool ?? _lockedTool)?.wakeCommands.icon,
+                            lockedTrigger: _lockedTrigger,
+                            onUnlock: _unlock,
                           ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),
