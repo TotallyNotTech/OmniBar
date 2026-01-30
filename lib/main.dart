@@ -9,7 +9,7 @@ import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:omni_bar/global_control.dart';
 import 'package:omni_bar/providers/hotkey_provider.dart';
-import 'package:omni_bar/omni_bar_home.dart';
+import 'package:omni_bar/omniBar/omni_bar_home.dart';
 import 'package:omni_bar/providers/startup_config_provider.dart';
 import 'package:omni_bar/settings_page.dart';
 import 'package:omni_bar/providers/theme_provider.dart';

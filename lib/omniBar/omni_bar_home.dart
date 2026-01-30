@@ -1,11 +1,15 @@
 import 'dart:ui' as ui;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:omni_bar/global_control.dart';
+import 'package:omni_bar/omniBar/search_bar.dart';
+import 'package:omni_bar/omniBar/search_results.dart';
 import 'package:omni_bar/providers/hotkey_provider.dart';
 import 'package:omni_bar/providers/startup_config_provider.dart';
-import 'package:omni_bar/tools/base64_tool.dart';
+import 'package:omni_bar/tools/base64_decoder_tool.dart';
+import 'package:omni_bar/tools/base64_encoder_tool.dart';
 import 'package:omni_bar/tools/color_tool.dart';
 import 'package:omni_bar/tools/json_tool.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
@@ -30,12 +34,23 @@ class _OmniBarHomeState extends State<OmniBarHome>
   late Animation<Offset> _slideAnimation;
 
   late final List<OmniTool> _tools;
+  late final List<SearchSuggestion> _allSuggestions;
+
+  // Active states
   OmniTool? _activeTool;
   Widget? _activeToolWidget;
+
+  // LOCKED STATE VARIABLES
+  OmniTool? _lockedTool;
+  String? _lockedTrigger;
+
+  int _selectedIndex = 0;
 
   final TextEditingController _textController = TextEditingController();
   final ScrollController _inputScrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+
+  List<SearchSuggestion> _filteredSuggestions = [];
 
   StartupConfigProvider startupConfigProvider = StartupConfigProvider();
 
@@ -59,7 +74,15 @@ class _OmniBarHomeState extends State<OmniBarHome>
           ),
         );
 
-    _tools = [JsonFormatTool(), UuidTool(), ColorTool(), Base64Tool()];
+    _tools = [
+      JsonFormatTool(),
+      UuidTool(),
+      ColorTool(),
+      Base64DecodeTool(),
+      Base64EncodeTool(),
+    ];
+    _allSuggestions = _tools.map((e) => e.wakeCommands).toList();
+
     windowManager.addListener(this);
     _textController.addListener(_onTextChanged);
 
@@ -143,6 +166,10 @@ class _OmniBarHomeState extends State<OmniBarHome>
       setState(() {
         _activeTool = null;
         _activeToolWidget = null;
+        _lockedTool = null;
+        _lockedTrigger = null;
+        _filteredSuggestions = [];
+        _selectedIndex = 0;
       });
     }
   }
@@ -174,22 +201,55 @@ class _OmniBarHomeState extends State<OmniBarHome>
     OmniController.toggleUI = _toggleWindow;
   }
 
-  // (... _onTextChanged and _onSubmitted remain exactly the same ...)
+  void _onNavigate(int direction) {
+    if (_filteredSuggestions.isEmpty) return;
+
+    setState(() {
+      // Calculate new index and wrap around
+      int newIndex = _selectedIndex + direction;
+      if (newIndex < 0) {
+        newIndex = _filteredSuggestions.length - 1;
+      } else if (newIndex >= _filteredSuggestions.length) {
+        newIndex = 0;
+      }
+      _selectedIndex = newIndex;
+    });
+  }
+
   void _onTextChanged() {
     final text = _textController.text;
-    Widget? foundWidget;
-    OmniTool? foundTool;
-    for (final tool in _tools) {
-      if (tool.canHandle(text)) {
-        foundWidget = tool.buildDisplay(context, text);
-        foundTool = tool;
-        break;
+
+    // MODE A: LOCKED (Tool is active, passing payload)
+    if (_lockedTool != null) {
+      // Pass the raw text directly to the tool. No searching.
+      final widget = _lockedTool!.buildDisplay(context, text);
+
+      if (_activeToolWidget != widget) {
+        setState(() {
+          _activeToolWidget = widget;
+        });
       }
+      return;
     }
-    if (_activeToolWidget != foundWidget) {
+
+    // MODE B: SEARCH (Filtering suggestions)
+    // We do NOT check tool.canHandle here anymore.
+
+    List<SearchSuggestion> newSuggestions = [];
+    if (text.trim().isNotEmpty) {
+      final lowerText = text.trim().toLowerCase();
+      newSuggestions = _allSuggestions.where((s) {
+        return s.trigger.any((t) => t.toLowerCase().contains(lowerText));
+      }).toList();
+    }
+
+    if (_filteredSuggestions != newSuggestions) {
       setState(() {
-        _activeToolWidget = foundWidget;
-        _activeTool = foundTool;
+        _filteredSuggestions = newSuggestions;
+        // Ensure no tool is showing while searching/filtering
+        _activeToolWidget = null;
+        _activeTool = null;
+        _selectedIndex = 0;
       });
     }
   }
@@ -202,9 +262,48 @@ class _OmniBarHomeState extends State<OmniBarHome>
     }
   }
 
+  void _acceptSuggestion(SearchSuggestion suggestion) {
+    final tool = _tools.firstWhere(
+      (t) => t.wakeCommands.description == suggestion.description,
+    );
+    final trigger = suggestion.trigger.first;
+
+    setState(() {
+      _lockedTool = tool;
+      _lockedTrigger = trigger;
+      _activeTool = tool; // Keep this for copy/paste logic
+
+      // Clear text so user can type payload
+      _textController.clear();
+      // Hide suggestions
+      _filteredSuggestions = [];
+
+      // Initialize tool with empty input
+      _activeToolWidget = tool.buildDisplay(context, "");
+    });
+
+    // Ensure focus stays on input
+    _focusNode.requestFocus();
+  }
+
+  void _unlock() {
+    setState(() {
+      _lockedTool = null;
+      _lockedTrigger = null;
+      _activeTool = null;
+      _activeToolWidget = null;
+      _textController.clear();
+      _filteredSuggestions = [];
+      _selectedIndex = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    print(_allSuggestions.map((e) => e.description));
+
+    print("activeactive $_activeTool");
 
     bool isDark;
     if (themeProvider.themeMode == ThemeMode.system) {
@@ -216,31 +315,65 @@ class _OmniBarHomeState extends State<OmniBarHome>
         ? Colors.black.withOpacity(0.6)
         : Colors.white.withOpacity(0.6);
     final textColor = isDark ? Colors.white : Colors.black;
+
+    Widget mainContent;
+    Key contentKey;
+    if (_activeToolWidget != null) {
+      // Case A: A tool is active (result shown)
+      contentKey = ValueKey(_activeTool?.runtimeType);
+      mainContent = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+          _activeToolWidget!,
+        ],
+      );
+    } else if (_filteredSuggestions.isNotEmpty) {
+      // Case B: No tool, but we have suggestions
+      contentKey = const ValueKey('suggestions');
+      mainContent = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+          // 6. Build the Suggestions List
+          ..._filteredSuggestions.mapIndexed((index, suggestion) {
+            final isSelected = index == _selectedIndex;
+            return SearchResultsWidget(
+              isDark: isDark,
+              itemIndex: index,
+              isSelected: isSelected,
+              searchSuggestion: suggestion,
+              acceptSuggestion: _acceptSuggestion,
+              textColor: textColor,
+            );
+          }),
+        ],
+      );
+    } else {
+      // Case C: Nothing
+      contentKey = const ValueKey('empty');
+      mainContent = const SizedBox.shrink();
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Center(
         child: MouseRegion(
           onEnter: (_) {
-            // Only capture mouse if animation is finished showing
             if (_animController.isCompleted) {
               windowManager.setIgnoreMouseEvents(false);
             }
           },
           onExit: (_) {
-            // Only ignore mouse if we don't have focus
             if (!_focusNode.hasFocus) {
               windowManager.setIgnoreMouseEvents(true);
             }
           },
-          // 6. Wrap the entire visible container in transitions
           child: FadeTransition(
-            opacity: _animController, // Fades in as controller goes 0 -> 1
+            opacity: _animController,
             child: SlideTransition(
-              position:
-                  _slideAnimation, // Slides down as controller goes 0 -> 1
+              position: _slideAnimation,
               child: AnimatedContainer(
-                // Note: This duration defines the *resizing* speed when tools appear.
-                // It is separate from the open/close animation speed.
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
                 width: 700,
@@ -265,28 +398,38 @@ class _OmniBarHomeState extends State<OmniBarHome>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildSearchBar(textColor),
+                          SearchBarWidget(
+                            textController: _textController,
+                            textColor: textColor,
+                            inputScrollController: _inputScrollController,
+                            filteredSuggestions: _filteredSuggestions,
+                            acceptSuggestion: _acceptSuggestion,
+                            onSubmitted: _onSubmitted,
+                            focusNode: _focusNode,
+                            toolIcon:
+                                (_activeTool ?? _lockedTool)?.wakeCommands.icon,
+                            lockedTrigger: _lockedTrigger,
+                            triggerHelperText:
+                                (_activeTool ?? _lockedTool)?.helperText,
+                            onUnlock: _unlock,
+                            canEnterText:
+                                (_activeTool ?? _lockedTool)?.canEnterText,
+                            selectedIndex: _selectedIndex,
+                            onNavigate: _onNavigate,
+                          ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),
-                            // "easeOutBack" gives it a slight overshoot/pop effect (the whoosh)
                             switchInCurve: Curves.easeOutBack,
                             switchOutCurve: Curves.easeIn,
-
                             transitionBuilder: (child, animation) {
-                              // Combine 3 animations for the perfect feel:
                               return SizeTransition(
-                                sizeFactor:
-                                    animation, // 1. Expand vertical space
-                                axisAlignment:
-                                    -1.0, // Expand from Top to Bottom
+                                sizeFactor: animation,
+                                axisAlignment: -1.0,
                                 child: FadeTransition(
-                                  opacity: animation, // 2. Fade in
+                                  opacity: animation,
                                   child: SlideTransition(
                                     position: Tween<Offset>(
-                                      begin: const Offset(
-                                        0.0,
-                                        -0.2,
-                                      ), // 3. Slide down slightly
+                                      begin: const Offset(0.0, -0.2),
                                       end: Offset.zero,
                                     ).animate(animation),
                                     child: child,
@@ -294,82 +437,18 @@ class _OmniBarHomeState extends State<OmniBarHome>
                                 ),
                               );
                             },
-
-                            // We switch between "Content" and "Nothing"
-                            child: _activeToolWidget != null
-                                ? Column(
-                                    // 🔑 KEY IS CRITICAL:
-                                    // using runtimeType ensures we only animate when the TOOL changes
-                                    // (e.g. Nothing -> JSON), not on every single character you type.
-                                    key: ValueKey(_activeTool?.runtimeType),
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Divider(
-                                        height: 1,
-                                        color: Colors.white.withOpacity(0.1),
-                                      ),
-                                      _activeToolWidget!,
-                                    ],
-                                  )
-                                : const SizedBox.shrink(), // Empty widget when idle
+                            // Use the content determined above
+                            child: KeyedSubtree(
+                              key: contentKey,
+                              child: mainContent,
+                            ),
                           ),
-                          // 👆👆👆 END ANIMATION BLOCK 👆👆👆
-
-                          // if (_activeToolWidget != null) ...[
-                          //   Divider(
-                          //     height: 1,
-                          //     color: Colors.white.withOpacity(0.1),
-                          //   ),
-                          //   _activeToolWidget!,
-                          // ],
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(Color textColor) {
-    // CLEAN FIX: Removed manual Scrollbar wrapper and ScrollConfiguration.
-    // The TextField handles its own scrollbar naturally now.
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 130),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Focus(
-          onKeyEvent: (FocusNode node, KeyEvent event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.enter) {
-              if (!HardwareKeyboard.instance.isShiftPressed) {
-                _onSubmitted(_textController.text);
-                return KeyEventResult.handled;
-              }
-            }
-            return KeyEventResult.ignored;
-          },
-          child: TextField(
-            controller: _textController,
-            // Keeping this linked ensures TextField uses our controller
-            scrollController: _inputScrollController,
-            focusNode: _focusNode,
-            style: TextStyle(color: textColor, fontSize: 24),
-            maxLines: null,
-            textAlignVertical: TextAlignVertical.center,
-            keyboardType: TextInputType.multiline,
-            scrollPhysics: const ClampingScrollPhysics(),
-            decoration: InputDecoration(
-              hintText: "Enter a command...",
-              hintStyle: TextStyle(color: textColor),
-              border: InputBorder.none,
-              prefixIcon: Icon(Icons.search, color: textColor, size: 28),
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
             ),
           ),
         ),

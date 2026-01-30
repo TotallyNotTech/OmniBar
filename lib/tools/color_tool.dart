@@ -7,13 +7,15 @@ class ColorTool extends OmniTool {
   @override
   String get name => "Color Tool";
 
-  // Regex to match Hex: #RRGGBB, RRGGBB, #RGB, or RGB
-  final RegExp _hexRegex = RegExp(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$');
+  @override
+  get helperText => "Enter HEX color value...";
 
   @override
-  bool canHandle(String input) {
-    return _hexRegex.hasMatch(input.trim());
-  }
+  get wakeCommands => SearchSuggestion(
+    ['color'],
+    'Color Converter (Hex/RGB)',
+    Icons.color_lens,
+  );
 
   Color? _parseColor(String input) {
     String hex = input.trim().replaceAll('#', '');

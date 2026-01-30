@@ -7,6 +7,7 @@ environment:
   sdk: ^3.10.7
 
 dependencies:
+  collection: ^1.19.1
   desktop_multi_window: ^0.3.0
   flutter:
     sdk: flutter

@@ -9,16 +9,21 @@ class UuidTool implements OmniTool {
   @override
   String get name => "UUID Generator";
 
+  @override
+  get helperText => "Enter...";
+
+  @override
+  bool get canEnterText => false;
+
   String? _cachedInput;
   String? _cachedResult;
 
   @override
-  bool canHandle(String input) {
-    // 2. The Trigger: Only activate if the user types exactly "uuid"
-    // (trim whitespace and ignore case)
-    return input.trim().toLowerCase() == 'uuid' ||
-        input.trim().toLowerCase() == 'uid';
-  }
+  SearchSuggestion get wakeCommands => SearchSuggestion(
+    ['uuid', 'uid', 'unique'],
+    'UUID Generator',
+    Icons.qr_code,
+  );
 
   @override
   Widget buildDisplay(BuildContext context, String input) {
