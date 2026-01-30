@@ -8,7 +8,8 @@ import 'package:omni_bar/omniBar/search_bar.dart';
 import 'package:omni_bar/omniBar/search_results.dart';
 import 'package:omni_bar/providers/hotkey_provider.dart';
 import 'package:omni_bar/providers/startup_config_provider.dart';
-import 'package:omni_bar/tools/base64_tool.dart';
+import 'package:omni_bar/tools/base64_decoder_tool.dart';
+import 'package:omni_bar/tools/base64_encoder_tool.dart';
 import 'package:omni_bar/tools/color_tool.dart';
 import 'package:omni_bar/tools/json_tool.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
@@ -71,7 +72,13 @@ class _OmniBarHomeState extends State<OmniBarHome>
           ),
         );
 
-    _tools = [JsonFormatTool(), UuidTool(), ColorTool(), Base64Tool()];
+    _tools = [
+      JsonFormatTool(),
+      UuidTool(),
+      ColorTool(),
+      Base64DecodeTool(),
+      Base64EncodeTool(),
+    ];
     _allSuggestions = _tools.map((e) => e.wakeCommands).toList();
 
     windowManager.addListener(this);

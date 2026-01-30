@@ -15,7 +15,7 @@ abstract class OmniTool {
 
   /// Logic to decide if this tool should activate based on user input.
   /// e.g., Does it look like JSON? Does it start with "#"?
-  bool canHandle(String input);
+  bool canHandle(String input) => true;
 
   String get helperText;
 
