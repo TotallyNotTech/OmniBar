@@ -19,8 +19,11 @@ class UuidTool implements OmniTool {
   String? _cachedResult;
 
   @override
-  SearchSuggestion get wakeCommands =>
-      SearchSuggestion(['uuid', 'uid'], 'UUID Generator', Icons.qr_code);
+  SearchSuggestion get wakeCommands => SearchSuggestion(
+    ['uuid', 'uid', 'unique'],
+    'UUID Generator',
+    Icons.qr_code,
+  );
 
   @override
   Widget buildDisplay(BuildContext context, String input) {
