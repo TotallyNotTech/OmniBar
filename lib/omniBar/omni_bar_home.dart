@@ -331,23 +331,28 @@ class _OmniBarHomeState extends State<OmniBarHome>
     } else if (_filteredSuggestions.isNotEmpty) {
       // Case B: No tool, but we have suggestions
       contentKey = const ValueKey('suggestions');
-      mainContent = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Divider(height: 1, color: Colors.white.withOpacity(0.1)),
-          // 6. Build the Suggestions List
-          ..._filteredSuggestions.mapIndexed((index, suggestion) {
-            final isSelected = index == _selectedIndex;
-            return SearchResultsWidget(
-              isDark: isDark,
-              itemIndex: index,
-              isSelected: isSelected,
-              searchSuggestion: suggestion,
-              acceptSuggestion: _acceptSuggestion,
-              textColor: textColor,
-            );
-          }),
-        ],
+      mainContent = AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        alignment: Alignment.topCenter, // Shrink upwards
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+            // 6. Build the Suggestions List
+            ..._filteredSuggestions.mapIndexed((index, suggestion) {
+              final isSelected = index == _selectedIndex;
+              return SearchResultsWidget(
+                isDark: isDark,
+                itemIndex: index,
+                isSelected: isSelected,
+                searchSuggestion: suggestion,
+                acceptSuggestion: _acceptSuggestion,
+                textColor: textColor,
+              );
+            }),
+          ],
+        ),
       );
     } else {
       // Case C: Nothing
