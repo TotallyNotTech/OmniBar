@@ -10,6 +10,9 @@ class JsonFormatTool implements OmniTool {
   String get name => "JSON Pretty Printer";
 
   @override
+  bool get canEnterText => true;
+
+  @override
   get helperText => "Enter JSON to format...";
 
   @override

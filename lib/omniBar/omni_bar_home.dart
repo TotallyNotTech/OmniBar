@@ -390,6 +390,8 @@ class _OmniBarHomeState extends State<OmniBarHome>
                             triggerHelperText:
                                 (_activeTool ?? _lockedTool)?.helperText,
                             onUnlock: _unlock,
+                            canEnterText:
+                                (_activeTool ?? _lockedTool)?.canEnterText,
                           ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),

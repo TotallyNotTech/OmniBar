@@ -12,6 +12,9 @@ class UuidTool implements OmniTool {
   @override
   get helperText => "Enter...";
 
+  @override
+  bool get canEnterText => false;
+
   String? _cachedInput;
   String? _cachedResult;
 

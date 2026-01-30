@@ -17,6 +17,9 @@ abstract class OmniTool {
   /// e.g., Does it look like JSON? Does it start with "#"?
   bool canHandle(String input) => true;
 
+  // TODO: continue this for the uuid one
+  bool get canEnterText => true;
+
   String get helperText;
 
   /// The UI widget to display below the search bar when active.

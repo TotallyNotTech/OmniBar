@@ -13,6 +13,7 @@ class SearchBarWidget extends StatefulWidget {
   final IconData? toolIcon;
   final String? lockedTrigger;
   final String? triggerHelperText;
+  final bool? canEnterText;
   final VoidCallback onUnlock;
 
   const SearchBarWidget({
@@ -27,6 +28,7 @@ class SearchBarWidget extends StatefulWidget {
     required this.toolIcon,
     required this.lockedTrigger,
     required this.triggerHelperText,
+    required this.canEnterText,
     required this.onUnlock,
   });
 
@@ -38,6 +40,22 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   Widget build(BuildContext context) {
     print("toolicon ${widget.toolIcon}");
+
+    bool textFieldEnabled = true;
+    String? hintText;
+
+    if (widget.lockedTrigger != null && widget.canEnterText == false) {
+      textFieldEnabled = false;
+    }
+
+    hintText = widget.lockedTrigger != null
+        ? widget.triggerHelperText
+        : "Start typing command...";
+
+    if (!textFieldEnabled) {
+      hintText = null;
+    }
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 130),
       child: Padding(
@@ -81,6 +99,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                 return KeyEventResult.handled;
               }
             }
+
+            if (event is KeyDownEvent && !textFieldEnabled) {
+              return KeyEventResult.handled;
+            }
+
             return KeyEventResult.ignored;
           },
           child: TextField(
@@ -93,10 +116,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             textAlignVertical: TextAlignVertical.center,
             keyboardType: TextInputType.multiline,
             scrollPhysics: const ClampingScrollPhysics(),
+            showCursor: textFieldEnabled,
             decoration: InputDecoration(
-              hintText: widget.lockedTrigger != null
-                  ? widget.triggerHelperText
-                  : "Start typing command...",
+              hintText: hintText,
               hintStyle: TextStyle(color: widget.textColor),
               border: InputBorder.none,
               prefixIcon: widget.lockedTrigger != null
