@@ -19,14 +19,6 @@ class UuidTool implements OmniTool {
   String? _cachedResult;
 
   @override
-  bool canHandle(String input) {
-    // 2. The Trigger: Only activate if the user types exactly "uuid"
-    // (trim whitespace and ignore case)
-    return input.trim().toLowerCase() == 'uuid' ||
-        input.trim().toLowerCase() == 'uid';
-  }
-
-  @override
   SearchSuggestion get wakeCommands =>
       SearchSuggestion(['uuid', 'uid'], 'UUID Generator', Icons.qr_code);
 

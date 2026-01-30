@@ -20,26 +20,6 @@ class JsonFormatTool implements OmniTool {
       SearchSuggestion(['json'], 'Format & Validate JSON', Icons.data_object);
 
   @override
-  bool canHandle(String input) {
-    input = input.trim();
-    // Fast checks: Must start/end with JSON-like structure
-    if (input.isEmpty) return false;
-    if (!(input.startsWith('{') && input.endsWith('}')) &&
-        !(input.startsWith('[') && input.endsWith(']'))) {
-      return false;
-    }
-
-    try {
-      // The real test: try to parse it.
-      jsonDecode(input);
-      return true;
-    } catch (e) {
-      // Parsing failed, not valid JSON
-      return false;
-    }
-  }
-
-  @override
   Widget buildDisplay(BuildContext context, String input) {
     try {
       final decoded = jsonDecode(input);

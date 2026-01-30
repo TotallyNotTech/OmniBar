@@ -13,10 +13,6 @@ abstract class OmniTool {
   /// The name of the tool (for future list view)
   String get name;
 
-  /// Logic to decide if this tool should activate based on user input.
-  /// e.g., Does it look like JSON? Does it start with "#"?
-  bool canHandle(String input) => true;
-
   // TODO: continue this for the uuid one
   bool get canEnterText => true;
 
