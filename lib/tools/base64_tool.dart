@@ -9,6 +9,9 @@ class Base64Tool extends OmniTool {
   String get name => "Base64 Encoder/Decoder";
 
   @override
+  get helperText => "Enter Base64 to decode...";
+
+  @override
   bool canHandle(String input) {
     final trimmed = input.trim();
     // if (trimmed.length < 6) return false;

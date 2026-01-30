@@ -7,6 +7,9 @@ class ColorTool extends OmniTool {
   @override
   String get name => "Color Tool";
 
+  @override
+  get helperText => "Enter HEX color value...";
+
   // Regex to match Hex: #RRGGBB, RRGGBB, #RGB, or RGB
   final RegExp _hexRegex = RegExp(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$');
 

@@ -12,6 +12,7 @@ class SearchBarWidget extends StatefulWidget {
   final FocusNode focusNode;
   final IconData? toolIcon;
   final String? lockedTrigger;
+  final String? triggerHelperText;
   final VoidCallback onUnlock;
 
   const SearchBarWidget({
@@ -25,6 +26,7 @@ class SearchBarWidget extends StatefulWidget {
     required this.focusNode,
     required this.toolIcon,
     required this.lockedTrigger,
+    required this.triggerHelperText,
     required this.onUnlock,
   });
 
@@ -93,7 +95,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             scrollPhysics: const ClampingScrollPhysics(),
             decoration: InputDecoration(
               hintText: widget.lockedTrigger != null
-                  ? "Paste payload..."
+                  ? widget.triggerHelperText
                   : "Start typing command...",
               hintStyle: TextStyle(color: widget.textColor),
               border: InputBorder.none,
@@ -171,6 +173,28 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               //   minWidth: 0,
               //   minHeight: 0,
               // ),
+              suffixIcon: widget.lockedTrigger != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                      ), // Space from input text
+                      child: Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment.center, // Force vertical center
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "DEL to clear",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: widget.textColor.withOpacity(0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : null,
               isDense: true,
               contentPadding: EdgeInsets.zero,
             ),

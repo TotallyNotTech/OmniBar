@@ -380,6 +380,8 @@ class _OmniBarHomeState extends State<OmniBarHome>
                             toolIcon:
                                 (_activeTool ?? _lockedTool)?.wakeCommands.icon,
                             lockedTrigger: _lockedTrigger,
+                            triggerHelperText:
+                                (_activeTool ?? _lockedTool)?.helperText,
                             onUnlock: _unlock,
                           ),
                           AnimatedSwitcher(

@@ -17,6 +17,8 @@ abstract class OmniTool {
   /// e.g., Does it look like JSON? Does it start with "#"?
   bool canHandle(String input);
 
+  String get helperText;
+
   /// The UI widget to display below the search bar when active.
   Widget buildDisplay(BuildContext context, String input);
   String? getCopyableData(String input) => null;

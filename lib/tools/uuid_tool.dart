@@ -9,6 +9,9 @@ class UuidTool implements OmniTool {
   @override
   String get name => "UUID Generator";
 
+  @override
+  get helperText => "Enter...";
+
   String? _cachedInput;
   String? _cachedResult;
 
