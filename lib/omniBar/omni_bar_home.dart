@@ -14,6 +14,7 @@ import 'package:omni_bar/tools/color_tool.dart';
 import 'package:omni_bar/tools/json_tool.dart';
 import 'package:omni_bar/tools/omni_tools.dart';
 import 'package:omni_bar/providers/theme_provider.dart';
+import 'package:omni_bar/tools/timestamp_tool.dart';
 import 'package:omni_bar/tools/uuid_tool.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -78,6 +79,7 @@ class _OmniBarHomeState extends State<OmniBarHome>
       JsonFormatTool(),
       UuidTool(),
       ColorTool(),
+      TimestampTool(),
       Base64DecodeTool(),
       Base64EncodeTool(),
     ];
