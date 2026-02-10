@@ -66,19 +66,19 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  appkit_ui_element_colors: bb247a2d02b8313cc47e1b83be48d996034c4001
-  desktop_multi_window: 566489c048b501134f9d7fb6a2354c60a9126486
+  appkit_ui_element_colors: c8e13c23cbd781e0f5d9b75cad686e6a4bb958da
+  desktop_multi_window: 93667594ccc4b88d91a97972fd3b1b89667fa80a
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   HotKey: 400beb7caa29054ea8d864c96f5ba7e5b4852277
-  hotkey_manager_macos: 1e2edb0c7ae4fe67108af44a9d3445de41404160
-  macos_ui: 50a2048b7ef82bde42570e2775f50907537a0eeb
-  macos_window_utils: 721df4da91cb4bde7b2b7b6ae93cdead4851118f
-  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
-  screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
-  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
-  system_tray: e53c972838c69589ff2e77d6d3abfd71332f9e5d
-  window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
+  hotkey_manager_macos: a4317849af96d2430fa89944d3c58977ca089fbe
+  macos_ui: ff29104a215c2e1b76f37aacdcbba648abb25faa
+  macos_window_utils: 23f54331a0fd51eea9e0ed347253bf48fd379d1d
+  package_info_plus: f0052d280d17aa382b932f399edf32507174e870
+  screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  system_tray: 53f0cdb020c3fbee711d3fe45ae7ce730e033d2b
+  window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
-PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
+PODFILE CHECKSUM: e40410991e5fe5741bcbd5d9704ee3187a5623a0
 
 COCOAPODS: 1.16.2
