@@ -64,7 +64,6 @@ class TimestampTool extends OmniTool {
       );
     }
 
-    // 3. ANIMATION
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
         return AnimatedSwitcher(
@@ -222,14 +221,19 @@ class _UnifiedTimestampDisplayState extends State<_UnifiedTimestampDisplay> {
             ? MediaQuery.platformBrightnessOf(context) == Brightness.dark
             : themeProvider.themeMode == ThemeMode.dark;
 
-        final bgColor = isDark
+        final containerBackgroundColor = isDark
             ? Colors.black.withOpacity(0.3)
-            : Colors.black.withOpacity(0.05);
-        final labelColor = isDark ? Colors.grey : Colors.grey[700]!;
-        final valueColor = isDark ? Colors.white : Colors.black;
+            : Colors.black.withOpacity(0.7);
+
+        final bgColor = isDark
+            ? Colors.white.withOpacity(0.3)
+            : Colors.white.withOpacity(0.05);
+        final labelColor = Colors.white.withOpacity(0.3);
+        final valueColor = Colors.white;
 
         return Container(
           padding: const EdgeInsets.all(16),
+          color: containerBackgroundColor,
           child: Column(
             children: [
               _buildTimeRow(
