@@ -21,42 +21,79 @@ class TimestampTool extends OmniTool {
   @override
   Widget buildDisplay(BuildContext context, String input) {
     final trimmed = input.trim();
+    Widget content;
 
-    // 1. LIVE MODE (Input is empty)
-    if (trimmed.isEmpty) {
-      return const _LiveTimestampView();
-    }
-
-    // 2. STATIC MODE (Input provided)
+    String? error;
     DateTime? parsedDate;
-    String error = "";
 
-    final number = int.tryParse(trimmed);
-    if (number != null && trimmed.length < 13) {
-      // Heuristic: Seconds (10 digits) vs Milliseconds (13 digits)
-      if (trimmed.length > 11) {
-        parsedDate = DateTime.fromMillisecondsSinceEpoch(number);
+    // 1. PARSE LOGIC
+    if (trimmed.isNotEmpty) {
+      final number = int.tryParse(trimmed);
+      if (number != null && trimmed.length < 13) {
+        if (trimmed.length > 11) {
+          parsedDate = DateTime.fromMillisecondsSinceEpoch(number);
+        } else {
+          parsedDate = DateTime.fromMillisecondsSinceEpoch(number * 1000);
+        }
       } else {
-        parsedDate = DateTime.fromMillisecondsSinceEpoch(number * 1000);
-      }
-    } else {
-      try {
-        parsedDate = DateTime.parse(trimmed);
-      } catch (_) {
-        error = "Invalid format";
+        try {
+          parsedDate = DateTime.parse(trimmed);
+        } catch (_) {
+          error = "Invalid format";
+        }
       }
     }
 
-    if (error.isNotEmpty) {
-      return Padding(
+    // 2. CONTENT SELECTION
+    // We group 'Live' (empty input) and 'Static' (valid input) into the SAME widget key.
+    // This prevents AnimatedSwitcher from firing when switching between them.
+    if (error != null) {
+      content = Container(
+        key: const ValueKey('error'), // Different key triggers animation
+        width: double.infinity,
         padding: const EdgeInsets.all(16.0),
+        alignment: Alignment.center,
         child: Text(error, style: const TextStyle(color: Colors.orange)),
+      );
+    } else {
+      // Both LIVE and STATIC use this widget.
+      // parsedDate == null implies "Live Mode" inside the widget.
+      content = _UnifiedTimestampDisplay(
+        key: const ValueKey('valid_content'), // SAME KEY = NO JUMP
+        date: parsedDate,
       );
     }
 
-    if (parsedDate == null) return const SizedBox();
-
-    return _TimestampInfoDisplay(date: parsedDate);
+    // 3. ANIMATION
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          switchInCurve: Curves.easeOutQuad,
+          switchOutCurve: Curves.easeInQuad,
+          layoutBuilder: (currentChild, previousChildren) {
+            return Stack(
+              alignment: Alignment.topCenter,
+              children: <Widget>[
+                ...previousChildren,
+                if (currentChild != null) currentChild,
+              ],
+            );
+          },
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SizeTransition(
+                sizeFactor: animation,
+                axisAlignment: -1.0,
+                child: child,
+              ),
+            );
+          },
+          child: content,
+        );
+      },
+    );
   }
 
   @override
@@ -88,51 +125,61 @@ class TimestampTool extends OmniTool {
   }
 }
 
-// --- INTERNAL WIDGETS & HELPERS ---
+// --- UNIFIED WIDGET (Handles both Live and Static) ---
 
-// 1. The Ticking Widget (Stateful)
-class _LiveTimestampView extends StatefulWidget {
-  const _LiveTimestampView();
+class _UnifiedTimestampDisplay extends StatefulWidget {
+  final DateTime? date; // If null, we run in "Live Mode"
+
+  const _UnifiedTimestampDisplay({super.key, this.date});
 
   @override
-  State<_LiveTimestampView> createState() => _LiveTimestampViewState();
+  State<_UnifiedTimestampDisplay> createState() =>
+      _UnifiedTimestampDisplayState();
 }
 
-class _LiveTimestampViewState extends State<_LiveTimestampView> {
-  late Timer _timer;
-  DateTime _now = DateTime.now();
+class _UnifiedTimestampDisplayState extends State<_UnifiedTimestampDisplay> {
+  Timer? _timer;
+  late DateTime _displayDate;
 
   @override
   void initState() {
     super.initState();
-    // Tick every second
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _now = DateTime.now();
+    _updateState();
+  }
+
+  @override
+  void didUpdateWidget(covariant _UnifiedTimestampDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateState();
+  }
+
+  void _updateState() {
+    if (widget.date != null) {
+      // STATIC MODE: Cancel timer, use provided date
+      _timer?.cancel();
+      _displayDate = widget.date!;
+    } else {
+      // LIVE MODE: Start timer if not running
+      if (_timer == null || !_timer!.isActive) {
+        _displayDate = DateTime.now();
+        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (mounted) {
+            setState(() {
+              _displayDate = DateTime.now();
+            });
+          }
         });
       }
-    });
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Re-use the display layout, passing the updating time
-    return _TimestampInfoDisplay(date: _now);
-  }
-}
-
-// 2. The UI Layout (Stateless)
-class _TimestampInfoDisplay extends StatelessWidget {
-  final DateTime date;
-
-  const _TimestampInfoDisplay({required this.date});
+  // --- UI RENDERING ---
 
   String _twoDigits(int n) => n >= 10 ? "$n" : "0$n";
 
@@ -144,7 +191,6 @@ class _TimestampInfoDisplay extends StatelessWidget {
   String _getRelativeTime(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    // Tolerance for "just now" logic in live mode to prevent flickering "in 0 seconds"
     if (difference.inSeconds.abs() < 2) return "just now";
 
     final isPast = date.isBefore(now);
@@ -165,8 +211,8 @@ class _TimestampInfoDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final utc = date.toUtc();
-    final local = date.toLocal();
+    final utc = _displayDate.toUtc();
+    final local = _displayDate.toLocal();
     final unixSec = (utc.millisecondsSinceEpoch / 1000).floor();
     final unixMs = utc.millisecondsSinceEpoch;
 
