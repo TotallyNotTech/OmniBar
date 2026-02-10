@@ -13,88 +13,67 @@ class JsonFormatTool implements OmniTool {
   bool get canEnterText => true;
 
   @override
-  get helperText => "Enter JSON to format...";
+  String get helperText => "Enter JSON to format...";
 
   @override
-  get wakeCommands =>
+  SearchSuggestion get wakeCommands =>
       SearchSuggestion(['json'], 'Format & Validate JSON', Icons.data_object);
 
   @override
   Widget buildDisplay(BuildContext context, String input) {
-    try {
-      final decoded = jsonDecode(input);
-      final prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
+    Widget content;
+    final trimmed = input.trim();
 
-      return Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          bool isDark;
-          if (themeProvider.themeMode == ThemeMode.system) {
-            isDark =
-                MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-          } else {
-            isDark = themeProvider.themeMode == ThemeMode.dark;
-          }
+    // 1. DETERMINE CONTENT
+    if (trimmed.isEmpty) {
+      content = const SizedBox(key: ValueKey('empty'));
+    } else {
+      try {
+        final decoded = jsonDecode(trimmed);
+        final prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
 
-          final backgroundColor = isDark
-              ? Colors.black.withOpacity(0.3)
-              : Colors.black.withOpacity(0.7);
-          final accentColor = isDark
-              ? Colors.greenAccent.shade100
-              : const Color.fromARGB(255, 52, 232, 103);
-
-          return Container(
-            constraints: const BoxConstraints(maxHeight: 450),
-            width: double.infinity,
-            // This outer padding is fine, keep it.
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: double.infinity,
-                    maxHeight:
-                        200, // Adjust this value if you want it taller/shorter
-                  ),
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      primary: true,
-                      // Removed the hacky internal padding. It shouldn't be needed now.
-                      child: SelectableText(
-                        prettyJson,
-                        style: TextStyle(
-                          color: accentColor,
-                          fontFamily: 'Courier',
-                          fontSize: 13,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Press Enter to copy and close",
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    } catch (e) {
-      return const SizedBox.shrink();
+        // 2. SUCCESS STATE
+        content = _JsonResultView(
+          prettyJson: prettyJson,
+          // Using a static key ensures we don't re-animate on every keystroke
+          // UNLESS you want it to flash. Usually keeping it stable is better.
+          key: const ValueKey('valid_json'),
+        );
+      } catch (e) {
+        // 3. ERROR / INVALID STATE
+        // We return SizedBox here so it stays hidden until valid,
+        // but the AnimatedSwitcher will make it "grow" nicely when it appears.
+        content = const SizedBox(key: ValueKey('invalid'));
+      }
     }
+
+    // 4. SNAPPY ANIMATION
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOutQuad,
+      switchOutCurve: Curves.easeInQuad,
+      // Prevents "jumping" by anchoring items to the top
+      layoutBuilder: (currentChild, previousChildren) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          children: <Widget>[
+            ...previousChildren,
+            if (currentChild != null) currentChild,
+          ],
+        );
+      },
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SizeTransition(
+            sizeFactor: animation,
+            axisAlignment: -1.0, // Expand from top down
+            child: child,
+          ),
+        );
+      },
+      child: content,
+    );
   }
 
   @override
@@ -108,8 +87,80 @@ class JsonFormatTool implements OmniTool {
   }
 
   @override
-  void resetState() {
-    // This tool holds no cached state between runs,
-    // so this implementation intentionally does nothing.
+  void resetState() {}
+}
+
+// --- INTERNAL UI WIDGET ---
+
+class _JsonResultView extends StatelessWidget {
+  final String prettyJson;
+
+  const _JsonResultView({required this.prettyJson, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        bool isDark;
+        if (themeProvider.themeMode == ThemeMode.system) {
+          isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+        } else {
+          isDark = themeProvider.themeMode == ThemeMode.dark;
+        }
+
+        final backgroundColor = isDark
+            ? Colors.black.withOpacity(0.3)
+            : Colors.black.withOpacity(0.7);
+        final accentColor = isDark
+            ? Colors.greenAccent.shade100
+            : const Color.fromARGB(255, 52, 232, 103);
+
+        return Container(
+          constraints: const BoxConstraints(maxHeight: 450),
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: double.infinity,
+                  maxHeight: 200,
+                ),
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    primary: true,
+                    child: SelectableText(
+                      prettyJson,
+                      style: TextStyle(
+                        color: accentColor,
+                        fontFamily: 'Courier',
+                        fontSize: 13,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Press Enter to copy and close",
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.3),
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
